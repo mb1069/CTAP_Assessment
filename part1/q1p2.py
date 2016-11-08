@@ -1,4 +1,5 @@
 import operator
+import math
 
 class Lfsr:
 
@@ -23,8 +24,6 @@ class Lfsr:
     def set_reg(self, new_reg_val):
         self.reg_val = new_reg_val
 
-    def get_reg(self):
-        return self.reg_val
     def get_taps(self):
         return self.taps
 
@@ -54,6 +53,8 @@ def combine_lfsr_outputs(out_1, out_2, out_3):
         return "1"
     elif out_1==1 and out_2==1 and out_3==1:
         return "0"
+    else:
+        return ""
 
 
 def test_combined(lfsr1, lfsr2, lfsr3, num_vals):
@@ -65,38 +66,53 @@ def test_combined(lfsr1, lfsr2, lfsr3, num_vals):
         out += combine_lfsr_outputs(out_1, out_2, out_3)
     return out
 
-def set_lfsr_key(lfsr, key_val):
+def dec2bin(length, key_val):
     val = [int (c) for c in '{0:b}'.format(key_val)]
-    while len(val)<lfsr.get_length():
+    while len(val)<length:
         val.insert(0, 0)
-    lfsr.set_reg(val)
+    return val
 
-def crack(lfsr, seq):
+
+def crack(lfsr, data):
     length = lfsr.get_length()
     lfsr_max_key = (2**length)
-    seq_len = len(seq)
+    data_len = len(data)
     max_agreement_val = -1.0
     max_agreement_ind = -1
-    f = open('l.txt', 'w')
     for x in range(0, lfsr_max_key):
-        set_lfsr_key(lfsr, x)
+        lfsr.reg_val = dec2bin(lfsr.length, x)
         output = []
-        for y in range(0, seq_len):
+        for y in range(0, data_len):
             output.append(lfsr.shift())
-        agreement = calc_agreement(seq, output)
-        f.write(str(x) + " " + str(agreement) + "\n")
-        print x
-        # print x, agreement
+        agreement = abs(0.5-calc_agreement(data, output))
         if agreement>max_agreement_val:
             max_agreement_val = agreement
             max_agreement_ind = x
-    f.close()
-    return (x, max_agreement_ind)
+    return (max_agreement_ind, max_agreement_val)
 
-def get_agreements(lfsr, seq):
+def crack_with(lfsr, lfsr2, key_2, data):
     length = lfsr.get_length()
     lfsr_max_key = (2**length)
-    seq_len = len(seq)
+    data_len = len(data)
+    max_agreement_val = -1.0
+    max_agreement_ind = -1
+    for x in range(1, lfsr_max_key):
+        keyVal = dec2bin(length, x)
+        lfsr.reg_val = keyVal[0:length]
+        lfsr2.reg_val = key_2
+        output = []
+        for y in range(0, data_len):
+            output.append(lfsr.shift()^lfsr2.shift())
+        agreement = abs(0.5-calc_agreement(data, output))
+        if agreement>max_agreement_val:
+            max_agreement_val = agreement
+            max_agreement_ind = x
+    return (max_agreement_ind, max_agreement_val)
+
+def get_agreements(lfsr, data):
+    length = lfsr.get_length()
+    lfsr_max_key = (2**length)
+    data_len = len(data)
     max_agreement_val = -1.0
     max_agreement_ind = -1
     agreements = []
@@ -106,115 +122,70 @@ def get_agreements(lfsr, seq):
             val.insert(0, 0)
         lfsr.set_reg(val)
         output = []
-        for y in range(0, seq_len):
+        for y in range(0, data_len):
             output.append(lfsr.shift())
-        agreement = calc_agreement(seq, output)
+        agreement = calc_agreement(data, output)
         agreements.append((x, agreement))
     return agreements
 
-def calc_agreement(seq1, seq2):
-    length = len(seq1)
+def calc_agreement(data1, data2):
+    length = len(data1)
     agreements = 0
     for x in range (0, length):
-        if (seq1[x]==seq2[x]):
+        if (data1[x]==data2[x]):
             agreements += 1
     return float(agreements)/float(length)
 
-arr = [1,1,0,0,0,0,1]
+def bin2dec(arr):
+    return int("".join([str(x) for x in arr]), 2)
+
+def crack_last(l0, l1, l2, l0_key, l2_key, data):
+    keyValue = -1
+    max_key_val = (2**l1.length)-1
+    for x in range (0, max_key_val):
+        bin_key = dec2bin(l2.length, x)
+        l0.set_reg(l0_key)
+        l1.set_reg(bin_key)
+        l2.set_reg(l2_key)
+        flag = True
+        for i, val in enumerate(data):
+            l0_val = l0.shift()
+            l1_val = l1.shift()
+            l2_val = l2.shift()
+            exp_val = -1
+            if combine_lfsr_outputs(l0_val, l1_val, l2_val)!=str(val):
+                flag = False
+                break
+        if flag:
+            return x
+
+
+arr = [0, 1, 0, 1, 1, 0, 0]
 l = Lfsr(7, [5, 6], arr)
-arr1 = [0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1]
-l1 = Lfsr(11, [8, 10], arr1) # 0.749 00101101101
-arr2 = [1, 1, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0]
-l2 = Lfsr(13, [7, 10, 11, 12], arr2) # 0.752  1110011110101
+arr1 = [0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 1]
+l1 = Lfsr(11, [8, 10], arr1)
+arr2 = [0, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 0, 0]
+l2 = Lfsr(13, [7, 10, 11, 12], arr2)
 
-def cracker(lfsr):
-    with open('stream.txt', 'r') as myfile:
-        data_raw = myfile.read().replace('\n', '').replace(' ', '')
-        data = [int(c) for c in data_raw]
-        print crack(lfsr, data)
+lsrs = [l, l1, l2]
 
-def crack_all(lfsrs):
-    agreements = list()
-    with open('stream.txt', 'r') as myfile:
-        data_raw = myfile.read().replace('\n', '').replace(' ', '')
-        data = [int(c) for c in data_raw]
-        for index, lfsr in enumerate(lfsrs):
-            agreement = get_agreements(lfsr, data)
-            agreement.sort(key=operator.itemgetter(1), reverse=True)
-            agreements.append([int(i[0]) for i in agreement])
-        return find_all_subkeys(lfsrs, agreements, data)
-
-def find_all_subkeys(lfsrs, agreements, data):
-    agreement = -1
-    depth = 5
-    i = 0
-    while (True):
-        for k0 in range(depth):
-            set_lfsr_key(lfsrs[0], agreements[0][k0])
-            for k1 in range(depth):
-                set_lfsr_key(lfsrs[1], agreements[1][k1])
-                for k2 in range(depth):
-                    set_lfsr_key(lfsrs[2], agreements[2][k2])
-                    out = test_combined(lfsrs[0], lfsrs[1], lfsrs[2], len(data))
-                    agreement = calc_agreement(out, data)
-                    print agreements[0][k0], agreements[1][k1], agreements[2][k2], agreement
-                    if (agreement==1.0):
-                        return k0, k1, k2
-
-        depth*=2
 
 def main():
-    crack_all([l, l1, l2])
+    # Read ciphertext from file
+    with open('stream.txt', 'r') as myfile:
+        data_raw = myfile.read().replace('\n', '').replace(' ', '')
+        data = [int(c) for c in data_raw]
 
-# def main():
-#     with open('StreamFile.txt', 'r') as myfile:
-#         data_raw = myfile.read().replace('\n', '').replace(' ', '')
-#         data = [int(c) for c in data_raw]
-#         lfsrs = set()
-#
-#         keyValue = -1
-#
-#         for x in range (0, 128):
-#             arr2 = [0,0,1,0,1,1,0,1,1,0,1]
-#             l2 = Lfsr(11, [1, 10], arr2) # 0.749 00101101101
-#             arr3 = [1,1,1,0,0,1,1,1,1,0,1,0,1]
-#             l3 = Lfsr(13, [1, 10, 11, 13], arr3) # 0.752  1110011110101
-#
-#             key_val = [int (c) for c in '{0:07b}'.format(x)]
-#             l1 = Lfsr(7, [1,7], key_val)
-#             flag = True
-#
-#             for i, val in enumerate(data):
-#                 l1_val = l1.shift()
-#                 l2_val = l2.shift()
-#                 l3_val = l3.shift()
-#                 exp_val = -1
-#                 if (l1_val==0 and l2_val==0 and l3_val==0 and val==0):
-#                     continue
-#                 elif (l1_val==0 and l2_val==0 and l3_val==1 and val==1):
-#                     continue
-#                 elif (l1_val==0 and l2_val==1 and l3_val==0 and val==0):
-#                     continue
-#                 elif (l1_val==0 and l2_val==1 and l3_val==1 and val==1):
-#                     continue
-#                 elif (l1_val==1 and l2_val==0 and l3_val==0 and val==0):
-#                     continue
-#                 elif (l1_val==1 and l2_val==0 and l3_val==1 and val==0):
-#                     continue
-#                 elif (l1_val==1 and l2_val==1 and l3_val==0 and val==1):
-#                     continue
-#                 elif (l1_val==1 and l2_val==1 and l3_val==1 and val==1):
-#                     continue
-#                 else:
-#                     flag = False
-#                     break
-#             if flag:
-#                 return x
+        key_l = crack(l, data)[0]
+        print "L0: "+str(key_l)
 
+        key_l1 = crack_with(l1, l, dec2bin(l.length, key_l), data)[0]
+        print "L1: "+str(key_l1)
 
-
+        key_l2 = crack_with(l2, l, dec2bin(l.length, key_l), data)[0]
+        print "L2: "+str(key_l2)
 
 
 if __name__ == "__main__":
     # execute only if run as the entry point into the program
-    print main()
+    main()

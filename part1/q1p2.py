@@ -179,9 +179,11 @@ def main():
         key_l = crack(l, data)[0]
         print "L0: "+str(key_l)
 
+
         key_l1 = crack_with(l1, l, dec2bin(l.length, key_l), data)[0]
         print "L1: "+str(key_l1)
 
+        print crack_with(l2, l, dec2bin(l.length, key_l), data)
         key_l2 = crack_with(l2, l, dec2bin(l.length, key_l), data)[0]
         print "L2: "+str(key_l2)
 

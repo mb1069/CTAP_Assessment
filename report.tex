@@ -89,47 +89,26 @@ The next 2 LFSR's are then broken by iterating over each respective set of possi
 This results in the set of initial states: \lstinline{lfsr1: 27, lfsr2: 1357, lfsr3: 7531}
 
 \subsection{Improvement}
-By changing the combination function to 1 0 0 1 0 1 1 0, we can ensure the function
+By changing the combination function to 1 0 0 1 0 1 1 0 (a single bit flip between ), we can ensure the function
 is correlation immune to order 2, as the Walsh-Hadamard values for \(R_1\),
  \(R_2\),  \(R_3\),  \(R_1 \oplus R_2\), \(R_1 \oplus R_3\) and \(R_1 \oplus R_3\), are now 0,
  and therefore have no exploitable correlation. This would leave a Walsh-Hadamard value of
  -8 for \(R_1 \oplus R_2 \oplus R_3\), which is acceptable as exploiting this would require iterating over the complete keyset \(O(n^{7+11+13}) = O(n^{31})\).
 
-The given combining function has order 1 correlations with \(R_1\) and \(R_3\).
-It has negative correlations with both, so it must be tweaked by increasing
-the correlation with them. To keep the function balanced, for any bit which
-is flipped, an opposite bit must also be flipped. The value of the combining
-function \(f\) at 1 is 1, but the value of \(R_1\) and \(R_3\) is 0. The
-value of the combining function \(f\) at 1010 is 0, but the value of \(R_1\)
- and \(R_3\) is 1. Flipping these two bits will increase the correlation with
-  \(R_1\) and \(R_3\) while keeping the function balanced. This creates a new
-   negative correlation with \(R_4\) of -4, although the correlation with \(R_1\)
-    is gone and the correlation with \(R_3\) is increased to -4. The correlation
-    with \(R_4\) and \(R_3\) can be removed. Each changing of a disagreement to
-  an agreement adds 2, since a -1 is changed to a +1. So 4 can be added by doing
-  this twice. Two bitflips are needed to keep the function balanced, so by making
-   sure that both bitflips improve the correlation with \(R_4\) and \(R_3\), the walsh values of both will be changed to 0. A candidate for this change is 1100 and 1111. At 1100, \(f\) is 1 but \(R_4\) and \(R_3\) are 0. At 1111, \(f\) is 0 but \(R_4\) and \(R_3\) are 1. So, these two values can be flipped. This makes the function correlation immune of order 1. The function and its walsh hadamard values are given below:
+% TO RE-WRITE!!!
 \begin{center}
   \begin{tabular}{@{}lll@{}}\label{tab:walsh2} \\
     \toprule \\
     Input & \(f\) & \(w\) \\
     \midrule \\
-    0000 & 1 & 0 \\
-    0001 & 0 & 0 \\
-    0010 & 0 & 0 \\
-    0011 & 1 & 0 \\
-    0100 & 0 & 0 \\
-    0101 & 1 & -8 \\
-    0110 & 1 & 0 \\
-    0111 & 0 & -8 \\
-    1000 & 1 & 0 \\
-    1001 & 0 & 0 \\
-    1010 & 1 & 0 \\
-    1011 & 0 & 0 \\
-    1100 & 0 & 0 \\
-    1101 & 1 & 8 \\
-    1110 & 0 & 0 \\
-    1111 & 1 & -8 \\
+    000 & 1 & 0 \\
+    001 & 0 & 0 \\
+    010 & 0 & 0 \\
+    011 & 1 & 0 \\
+    100 & 0 & 0 \\
+    101 & 1 & 0 \\
+    110 & 1 & 0 \\
+    111 & 0 & -8 \\
     \bottomrule \\
   \end{tabular}
 \end{center}
@@ -140,7 +119,7 @@ complexity of the attack much higher. The lowest possible complexity that could 
 In summary, the cipher is made significantly more difficult to attack by the new function, requiring a brute-force search of size \(2^{26}\) rather than \(2^{15}\). Even in the best possible case, a function with order-1 correlation immunity would require a brute force search of at least \(2^{18}\) rather than \(2^{15}\).
 
 \clearpage
-\section{Linear Cryptanalysis}
+\section{Differential Cryptanalysis}
 \subsection{Implementation}
 
 \subsubsection{Challenge}
@@ -149,6 +128,16 @@ In summary, the cipher is made significantly more difficult to attack by the new
 \subsubsection{Analysis}
 
 \subsubsection{Implementation}
+High differential characteristics for
+X=2, Y=3, Diff = 8
+X=8, Y=14, Diff= 8
+X=5, Y=8, Diff = 8
+
+X=12,Y=5, Diff = 6
+X=13,Y=6, Diff = 6
+X=4, Y=11, Diff = 6
+X=9, Y=13, Diff = 6
+
 
 \subsubsection{Challenge}
 
@@ -177,6 +166,10 @@ In summary, the cipher is made significantly more difficult to attack by the new
 
   \section{Walsh transform of combining function}\label{app:walsh}
   \lstinputlisting[language={}]{report/walsh_correlations.txt}
+
+  \section{Difference distribution table}\label{app:diff_distrib_tab}
+  \lstinputlisting[language={}]{report/diff_distrib_table.txt}
+
 
   % \section{Linear.hs}\label{app:linear}
   % \lstinputlisting[language=Haskell]{Linear.hs}

@@ -1,0 +1,417 @@
+@inproceedings{perfect,
+  title={Perfect nonlinear S-boxes},
+  author={Nyberg, Kaisa},
+  booktitle={Advances in Cryptology—EUROCRYPT’91},
+  pages={378--386},
+  year={1991},
+  organization={Springer}
+}
+@inproceedings{ordering,
+  title={On Correlation Between the Order of S-boxes and the Strength of DES},
+  author={Matsui, Mitsuru},
+  booktitle={Advances in Cryptology—EUROCRYPT'94},
+  pages={366--375},
+  year={1995},
+  organization={Springer}
+}
+
+@book{desdes,
+  title={Differential cryptanalysis of the data encryption standard},
+  author={Biham, Eli and Shamir, Adi},
+  year={2012},
+  publisher={Springer Science \& Business Media}
+}
+
+@book{strengthen,
+  title={How to strengthen DES using existing hardware},
+  author={Biham, Eli and Biryukov, Alex},
+  year={1995},
+  publisher={Springer}
+}
+@article{reversed,
+  title={Reversed Genetic Algorithms for Generation of Bijective S-boxes with Good Cryptographic Properties},
+  author={Ivanov, Georgi and Nikolov, Nikolay and Nikova, Svetla}
+}
+@inproceedings{biham1995matsui,
+  title={On Matsui's linear cryptanalysis},
+  author={Biham, Eli},
+  booktitle={Advances in Cryptology—EUROCRYPT'94},
+  pages={341--355},
+  year={1995},
+  organization={Springer}
+}
+
+@misc{china,
+author={Jon Russell},
+title={China Continues Its Crackdown On VPN Services},
+editor={Techcrunch},
+month={September},
+year={2015},
+url={http://techcrunch.com/2015/09/07/china-continues-its-crackdown-on-vpn-services/},
+note={[Online; posted 7-September-2015]}
+}
+@inproceedings{crc,
+  title={Low cost concurrent error detection for the advanced encryption standard},
+  author={Wu, Kaijie and Karri, Ramesh and Kuznetsov, Grigori and Goessel, Michael},
+  booktitle={Test Conference, 2004. Proceedings. ITC 2004. International},
+  pages={1242--1248},
+  year={2004},
+  organization={IEEE}
+}
+
+@incollection{karri2003parity,
+  title={Parity-based concurrent error detection of substitution-permutation network block ciphers},
+  author={Karri, Ramesh and Kuznetsov, Grigori and Goessel, Michael},
+  booktitle={Cryptographic Hardware and Embedded Systems-CHES 2003},
+  pages={113--124},
+  year={2003},
+  publisher={Springer}
+}
+
+@inproceedings{spatial,
+  title={Spatial EM jamming: A countermeasure against EM Analysis?},
+  author={Poucheret, Francois and Barthe, Lyonel and Benoit, Pascal and Torres, Lionel and Maurine, Philippe and Robert, Michel},
+  booktitle={VLSI System on Chip Conference (VLSI-SoC), 2010 18th IEEE/IFIP},
+  pages={105--110},
+  year={2010},
+  organization={IEEE}
+}
+@inproceedings{bucket,
+  title={A provably secure and efficient countermeasure against timing attacks},
+  author={Kopf, Boris and Durmuth, Markus},
+  booktitle={Computer Security Foundations Symposium, 2009. CSF'09. 22nd IEEE},
+  pages={324--335},
+  year={2009},
+  organization={IEEE}
+}
+@incollection{drpl,
+  title={Balanced Encoding to Mitigate Power Analysis: A Case Study},
+  author={Chen, Cong and Eisenbarth, Thomas and Shahverdi, Aria and Ye, Xin},
+  booktitle={Smart Card Research and Advanced Applications},
+  pages={49--63},
+  year={2014},
+  publisher={Springer}
+}
+@misc{seventies,
+author={Henry Corrigan-Gibbs},
+title={Keeping Secrets},
+editor={Stanford alumni magazine},
+month={November},
+year={2014},
+url={http://alumni.stanford.edu/get/page/magazine/article/?article\_id=74801},
+note={[Online; posted November-2014]}
+}
+@misc{australia,
+author={Renai LeMay},
+title={Cryptographers issue belated complaint about Defence Trade Controls fix},
+editor={Delimiter},
+month={July},
+year={2015},
+url={https://delimiter.com.au/2015/07/13/cryptographers-issue-belated-complaint-about-defence-trade-controls-fix/},
+note={[Online; posted 13-July-2015]}
+}
+@book{ultra,
+  title={The ultra secret},
+  author={Winterbotham, Frederick William},
+  year={1975},
+  publisher={Wiley-Blackwell}
+}
+@inproceedings{blaze,
+  title={Protocol failure in the escrowed encryption standard},
+  author={Blaze, Matt},
+  booktitle={Proceedings of the 2nd ACM Conference on Computer and Communications Security},
+  pages={59--67},
+  year={1994},
+  organization={ACM}
+}
+@article{guide,
+  title={Guide to general server security},
+  author={Scarfone, Karen and Jansen, Wayne and Tracy, Miles},
+  journal={NIST Special Publication},
+  volume={800},
+  pages={123},
+  year={2008}
+}
+@article{schneier-secrecy,
+  title={Secrecy, security, and obscurity},
+  author={Schneier, Bruce},
+  journal={Cryptogram, May},
+  volume={15},
+  year={2002}
+}
+@misc{schneier-insecurity,
+author={Bruce Schneier},
+title={The Insecurity of Secret IT Systems},
+editor={Schneier on Security},
+month={February},
+year={2014},
+url={https://www.schneier.com/blog/archives/2014/02/the\_insecurity\_2.html},
+note={[Online; posted 14-February-2014]}
+}
+@inproceedings{schneier-why,
+  title={Why cryptography is harder than it looks},
+  author={Schneier, Bruce},
+  booktitle={EDI FORUM-OAK PARK-},
+  volume={10},
+  pages={87--90},
+  year={1997},
+  organization={THE EDI GROUP, LTD.}
+}
+@article{imperfect,
+  title={Imperfect Forward Secrecy: How Diffie-Hellman Fails in Practice},
+  author={Adrian, David and Bhargavan, Karthikeyan and Durumeric, Zakir and Gaudry, Pierrick and Green, Matthew and Halderman, J Alex and Heninger, Nadia and Springall, Drew and Thom{\'e}, Emmanuel and Valenta, Luke and others}
+}
+@misc{spiegel,
+author={SPIEGEL Staff},
+title={Prying Eyes: Inside the NSA's War on Internet Security},
+editor={Der Spiegel},
+month={December},
+year={2014},
+url={http://www.spiegel.de/international/germany/inside-the-nsa-s-war-on-internet-security-a-1010361.html},
+note={[Online; posted 28-December-2014]}
+}
+@article{differ,
+  title={The Data Encryption Standard (DES) and its strength against attacks},
+  author={Coppersmith, Don},
+  journal={IBM journal of research and development},
+  volume={38},
+  number={3},
+  pages={243--250},
+  year={1994},
+  publisher={IBM}
+}
+
+@article{ellis,
+  title={The history of non-secret encryption},
+  author={Ellis, James H},
+  journal={Cryptologia},
+  volume={23},
+  number={3},
+  pages={267--273},
+  year={1999},
+  publisher={Taylor \& Francis}
+}
+
+@article{shamir2004acoustic,
+  title={Acoustic cryptanalysis},
+  author={Shamir, Adi and Tromer, Eran}
+}
+@incollection{ema,
+year={2001},
+isbn={978-3-540-42610-3},
+booktitle={Smart Card Programming and Security},
+volume={2140},
+series={Lecture Notes in Computer Science},
+editor={Attali, Isabelle and Jensen, Thomas},
+doi={10.1007/3-540-45418-7\_17},
+title={ElectroMagnetic Analysis (EMA): Measures and Counter-measures for Smart Cards},
+url={http://dx.doi.org/10.1007/3-540-45418-7\_17},
+publisher={Springer Berlin Heidelberg},
+keywords={electromagnetic and power analysis; tamper resistance; SEMA; DEMA; SPA; DPA; smartcard},
+author={Quisquater, Jean-Jacques and Samyde, David},
+pages={200-210},
+language={English}
+}
+
+@inproceedings{resistance,
+  title={Resistance against implementation attacks: A comparative study of the AES proposals},
+  author={Daemen, Joan and Rijmen, Vincent},
+  booktitle={The Second AES Candidate Conference},
+  pages={122--132},
+  year={1999}
+}
+
+@article{spadavecchia2006network,
+  title={A Network-based Asynchronous Architecture for Cryptographic Devices},
+  author={Spadavecchia, Ljiljana},
+  year={2006},
+  publisher={University of Edinburgh. College of Science and Engineering. School of Informatics.}
+}
+@incollection{des-mask,
+year={1999},
+isbn={978-3-540-66646-2},
+booktitle={Cryptographic Hardware and Embedded Systems},
+volume={1717},
+series={Lecture Notes in Computer Science},
+editor={Koç, Çetin K. and Paar, Christof},
+doi={10.1007/3-540-48059-5\_15},
+title={DES and Differential Power Analysis The “Duplication” Method},
+url={http://dx.doi.org/10.1007/3-540-48059-5\_15},
+publisher={Springer Berlin Heidelberg},
+author={Goubin, Louis and Patarin, Jacques},
+pages={158-172},
+language={English}
+}
+
+@incollection{formal-masking,
+  title={Masking against side-channel attacks: A formal security proof},
+  author={Prouff, Emmanuel and Rivain, Matthieu},
+  booktitle={Advances in Cryptology--EUROCRYPT 2013},
+  pages={142--159},
+  year={2013},
+  publisher={Springer}
+}
+@incollection{blinding2,
+year={1999},
+isbn={978-3-540-66347-8},
+booktitle={Advances in Cryptology — CRYPTO’ 99},
+volume={1666},
+series={Lecture Notes in Computer Science},
+editor={Wiener, Michael},
+doi={10.1007/3-540-48405-1\_26},
+title={Towards Sound Approaches to Counteract Power-Analysis Attacks},
+url={http://dx.doi.org/10.1007/3-540-48405-1\_26},
+publisher={Springer Berlin Heidelberg},
+author={Chari, Suresh and Jutla, CharanjitS. and Rao, JosyulaR. and Rohatgi, Pankaj},
+pages={398-412},
+language={English}
+}
+@incollection{blinding-xor,
+year={2001},
+isbn={978-3-540-41728-6},
+booktitle={Fast Software Encryption},
+volume={1978},
+series={Lecture Notes in Computer Science},
+editor={Goos, Gerhard and Hartmanis, Juris and van Leeuwen, Jan and Schneier, Bruce},
+doi={10.1007/3-540-44706-7\_11},
+title={Securing the AES Finalists Against Power Analysis Attacks},
+url={http://dx.doi.org/10.1007/3-540-44706-7\_11},
+publisher={Springer Berlin Heidelberg},
+author={Messerges, ThomasS.},
+pages={150-164},
+language={English}
+}
+@inproceedings{chacha,
+  title={ChaCha, a variant of Salsa20},
+  author={Bernstein, Daniel J}
+}
+@article{skein,
+  title={The skein hash function family},
+  author={Schneier, Bruce}
+}
+@incollection{bitslicing,
+year={2008},
+isbn={978-3-540-79262-8},
+booktitle={Topics in Cryptology – CT-RSA 2008},
+volume={4964},
+series={Lecture Notes in Computer Science},
+editor={Malkin, Tal},
+doi={10.1007/978-3-540-79263-5\_12},
+title={A Fast and Cache-Timing Resistant Implementation of the AES},
+url={http://dx.doi.org/10.1007/978-3-540-79263-5\_12},
+publisher={Springer Berlin Heidelberg},
+author={Könighofer, Robert},
+pages={187-202},
+language={English}
+}
+
+@incollection{miti2,
+  title={Cache attacks and countermeasures: the case of AES},
+  author={Osvik, Dag Arne and Shamir, Adi and Tromer, Eran},
+  booktitle={Topics in Cryptology--CT-RSA 2006},
+  pages={1--20},
+  year={2006},
+  publisher={Springer}
+}
+@article{miti,
+  title={Software mitigations to hedge AES against cache-based software side channel vulnerabilities.},
+  author={Brickell, Ernie and Graunke, Gary and Neve, Michael and Seifert, Jean-Pierre},
+  journal={IACR Cryptology ePrint Archive},
+  volume={2006},
+  pages={52},
+  year={2006}
+}
+
+@incollection{rc5,
+year={1999},
+isbn={978-3-540-65894-8},
+booktitle={Selected Areas in Cryptography},
+volume={1556},
+series={Lecture Notes in Computer Science},
+editor={Tavares, Stafford and Meijer, Henk},
+doi={10.1007/3-540-48892-8\_24},
+title={A Timing Attack on RC5},
+url={http://dx.doi.org/10.1007/3-540-48892-8\_24},
+publisher={Springer Berlin Heidelberg},
+keywords={Cryptanalysis; Timing Attacks; Block Cipher},
+author={Handschuh, Helena and Heys, HowardM.},
+pages={306-318},
+language={English}
+}
+@incollection{des-attack,
+year={1998},
+isbn={978-3-540-64275-6},
+booktitle={LATIN'98: Theoretical Informatics},
+volume={1380},
+series={Lecture Notes in Computer Science},
+editor={Lucchesi, CláudioL. and Moura, ArnaldoV.},
+doi={10.1007/BFb0054321},
+title={Strength of two Data Encryption Standard implementations under timing attacks},
+url={http://dx.doi.org/10.1007/BFb0054321},
+publisher={Springer Berlin Heidelberg},
+author={Hevia, Alejandro and Kiwi, Marcos},
+pages={192-205},
+language={English}
+}
+@misc{keyczar,
+author={Lawson, Nate},
+title={Timing attack in Google Keyczar library},
+journal={root labs rdist},
+type = {Blog},
+number = {May 28},
+year = {2009},
+howpublished = {\url{http://rdist.root.org/2009/05/28/timing-attack-in-google-keyczar-library/}}
+}
+@article{kocher2,
+  title={Introduction to differential power analysis},
+  author={Kocher, Paul and Jaffe, Joshua and Jun, Benjamin and Rohatgi, Pankaj},
+  journal={Journal of Cryptographic Engineering},
+  volume={1},
+  number={1},
+  pages={5--27},
+  year={2011},
+  publisher={Springer}
+}
+@incollection{pc,
+  title={The program counter security model: Automatic detection and removal of control-flow side channel attacks},
+  author={Molnar, David and Piotrowski, Matt and Schultz, David and Wagner, David},
+  booktitle={Information Security and Cryptology-ICISC 2005},
+  pages={156--168},
+  year={2006},
+  publisher={Springer}
+}
+@incollection{mul-all,
+  title={Defeating RSA multiply-always and message blinding countermeasures},
+  author={Witteman, Marc F and van Woudenberg, Jasper GJ and Menarini, Federico},
+  booktitle={Topics in Cryptology--CT-RSA 2011},
+  pages={77--88},
+  year={2011},
+  publisher={Springer}
+}
+@misc{aes-cache,
+  year={2005},
+  title={Cache-timing attacks on AES},
+  author={Bernstein, Daniel J}
+}
+@inproceedings{kocher,
+  title={Timing attacks on implementations of Diffie-Hellman, RSA, DSS, and other systems},
+  author={Kocher, Paul C},
+  booktitle={Advances in Cryptology—CRYPTO’96},
+  pages={104--113},
+  year={1996},
+  organization={Springer}
+}
+@article{concurrent,
+  title={Concurrent error detection},
+  author={Gorshe, Steven Scott},
+  year={2002}
+}
+@inproceedings{parity,
+  title={Parity-based concurrent error detection in symmetric block ciphers},
+  author={Karri, Ramesh and Kuznetsov, Grigori and Goessel, Michael},
+  booktitle={null},
+  pages={919},
+  year={2003},
+  organization={IEEE}
+}
+

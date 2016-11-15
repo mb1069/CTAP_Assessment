@@ -72,7 +72,7 @@ calculates the tap value, shifts the register and outputs the register's value. 
 \end{center}
 Using the walsh transform displayed in \autoref{app:streamattack}, we can implement a divide-and-conquer strategy.
 As LFSR1 correlates quite strongly with the output (walsh value of -4, 2 agreements and 6 disagreements resulting in a probability of 2/8 that it will agree with the function's output, with a bias of 0.25),
-it can be brute-forced to obtain it's key value by iterating over the space of subkeys, and finding the one with the highest agreement (subkey value 29, with an agreement of 0.253).
+it can be brute-forced to obtain it's key value by iterating over the space of subkeys, and finding the one with the highest agreement (subkey value 27, with an agreement of 0.253).
 
 The next attack targets \(R_1 \oplus R_2\), as it has a walsh value of 4 (6 agreements and 2 disagreements resulting in a probability of 6/8, and a bias of -0.25).
 The search space is reduced from \(O(n^{7} * n^{11})=O(n^{18})\) to \(O(n^7 + n^{11})=O(n^{11}))\) as we now know the key for LFSR1, allowing us to rapidly brute force the subkey for LFSR2 (value 1357, with agreement 0.247).
@@ -80,13 +80,13 @@ The search space is reduced from \(O(n^{7} * n^{11})=O(n^{18})\) to \(O(n^7 + n^
 Finally LFSR3 can be attacked using \(R_1 \oplus R_3\), with a walsh value of -4 (same agreements, disagreements, probability of correlation and bias as previous).
 As LFSR1's key is known, the search space is also reduced for this attack from \(O(n^{7} * n^{13})=O(n^{20})\) to \(O(n^7 + n^{13})=O(n^{13}))\). This resulted in the subkey for LFSR3 (value 7531, with agreemnt 0.245).
 
-Using this strategy, we have succesfully attacked all 3 shift registers in a severely reduced search space (\(O(n^{7+11+13})>(O(n^{7}+n^{11}+n^{13})=O(n^{13}))\) (a reduction of 18 bits), resulting in the set of subkeys: 29, 1357, and 7531.
+Using this strategy, we have succesfully attacked all 3 shift registers in a severely reduced search space (\(O(n^{7+11+13})>(O(n^{7}+n^{11}+n^{13})=O(n^{13}))\) (a reduction of 18 bits), resulting in the set of subkeys: 27, 1357, and 7531.
 
 \subsubsection{Attack Implementation}
 The Python program which implements this attack loads a keystream from \lstinline{stream.txt}, and begins by brute forcing the first register.
 This is achieved by iterating over all possible keys, recording their agreement with the given data, and returning the key with the highest normalised agreement.
 The next 2 LFSR's are then broken by iterating over each respective set of possible keys in combination with the output of LFSR1 using the previously known key.
-This results in the set of initial states: \lstinline{lfsr1: 29, lfsr2: 1357, lfsr3: 7531}
+This results in the set of initial states: \lstinline{lfsr1: 27, lfsr2: 1357, lfsr3: 7531}
 
 \subsection{Improvement}
 By changing the combination function to 1 0 0 1 0 1 1 0, we can ensure the function

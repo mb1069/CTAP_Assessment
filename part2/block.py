@@ -43,13 +43,12 @@ def round(val, subkey, last):
         val = permute(val)
     return val
 
-
-
 def do_4_rounds(val, subkeys):
     for x in range(0, 4):
         print " "
         val = round(val, subkeys[x], x>2)
         print "Round: {0} Val: {2} Subkey: {1} Last: {3}".format(x, subkeys[x], val, x==4)
+
     val = apply_subkey(val, subkeys[4])
     return val
 

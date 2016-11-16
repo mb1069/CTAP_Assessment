@@ -42,9 +42,8 @@
 \clearpage
 \section{Breaking Stream Ciphers}
 \subsection{Implementation and Challenge}
-The stream cipher implementation, \autoref{app:stream} (written in Python),
-can be found in appendix A. It can be ran using the Python 2.7.6
-compiler with the command \lstinline{python stream.py}. This will produce the
+The stream cipher implementation, found in \autoref{app:stream} (written in Python),
+can be ran using the Python 2.7.6 compiler with the command \lstinline{python stream.py}. This will produce the
 challenge 25 bit output of 3 Lfsrs with initial states 97, 975 and 6420:
 
 1 0 1 0 1 0 1 1 1 0 1 0 1 1 0 0 0 0 0 0 1 0 0 1 1
@@ -120,10 +119,13 @@ This would restrict the attack vector to a combination of LFSR1, LFSR2 and LFSR3
 this would require iterating over the complete keyset \(O(n^{7+11+13}) = O(n^{31})\), causing the time complexity to be significantly higher than the previous \(O(n^{13}))\).
 \clearpage
 \section{Differential Cryptanalysis}
-\subsection{Implementation}
-
-\subsubsection{Challenge}
-
+\subsection{Implementation and Challenge}
+The block cipher found in \autoref{app:block} (written in Python),
+can be ran using the Python 2.7.6 compiler with the command \lstinline{python block.py}. This will produce the
+challenge output of 45858 (1011001100100010 in binary).
+\subsection{Code description}
+The block cipher is implemented using the \lstinline{do_4_rounds} method, which controls the execution of substitutions, permutations or combinations
+of intermediary results with subkeys dependent on the round. These sub-methods are implemented in \lstinline{do_substitution, permute, and combine_key} respectively.
 \subsection{Cryptanalysis}
 \subsubsection{Analysis}
 

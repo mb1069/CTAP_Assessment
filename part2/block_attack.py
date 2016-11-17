@@ -47,8 +47,6 @@ def permute(val):
     permuted_val = [a[0], a[4], a[8], a[12], a[1], a[5], a[9], a[13], a[2], a[6], a[10], a[14], a[3], a[7], a[11], a[15]]
     return bin2dec("".join(permuted_val))
 
-def apply_subkey(val, subkey):
-    return val ^ subkey
 
 def round(val, last):
     val = do_substitution(val)
@@ -71,18 +69,12 @@ def calculate_xor_profiles():
                 if (maxs < s):
                     maxs = s
             differential_pairs.append((x,y,s))
-    # sorted(differential_pairs, key=lambda x: x[2])
     differential_pairs.sort(key = lambda x:x[2], reverse=True)
     print differential_pairs
 
-def check_wtf():
+def crack_section_subkey(plain_diff, cipher_diff, mask, shift):
     vals = {}
     subkeys = []
-    diff = 17
-    cipher_diff = 1
-    mask = 0xF
-    shift = 0
-    prev_key = 0xF
     with open('block.txt', 'r') as myfile:
         for line in myfile:
             (key, val) = line.split()
@@ -91,9 +83,9 @@ def check_wtf():
             prob = 0
             for plaintext in vals:
                 cipher1 = vals[plaintext]
-                cipher2 = vals[plaintext^diff]
-                cipher1 = (cipher1 ^ ((subkey<<shift) & prev_key)) & mask
-                cipher2 = (cipher2 ^ ((subkey<<shift) & prev_key)) & mask
+                cipher2 = vals[plaintext^plain_diff]
+                cipher1 = (cipher1 ^ (subkey<<shift)) & mask
+                cipher2 = (cipher2 ^ (subkey<<shift)) & mask
 
                 cipher1 = do_reverse_substitution(cipher1)
                 cipher2 = do_reverse_substitution(cipher2)
@@ -101,41 +93,20 @@ def check_wtf():
                     prob = prob + 1
             prob = float(prob) / len(vals)
             subkeys.append((subkey, prob))
-            print subkey, prob, prob*len(vals), len(vals)
+            # print subkey, prob, prob*len(vals), len(vals)
     subkeys.sort(key = lambda x:x[1], reverse=True)
-    print subkeys
+    return subkeys[0]
 
-
-
-    # for every subkey
-        # for every line in block.txt
-        # XOR with subkey
-        # reverse substitute
-        # check difference with difference in plaintext at that stage
-
-
-
-def do_3_rounds(val):
-    for x in range(0, 4):
-        # print " "
-        val = round(val, x>2)
-        # print "Round: {0} Val: {1} Last: {2}".format(x, val, x==4)
-    return val
 
 def main():
-    # print do_substitution(291)
-    # print do_substitution(17767)
-    # print do_substitution(33623)
-    # print do_substitution(30001)
-    # print do_substitution(23130)
-    # print permute(61440)
-    # print permute(3840)
-    # print permute(240)
-    # print permute(15)
-    # print permute(23130)
-    subkeys = [4132,  8165,  14287,  54321, 53124]
-    check_wtf()
-    # calculate_xor_profiles()
+    crack = crack_section_subkey(12, 12288, 0xF000, 12)
+    print "Bits   1..4: value: {0}, prob: {1}".format(crack[0], crack[1])
+    crack = crack_section_subkey(13, 768, 0xF00, 8)
+    print "Bits   5..8: value: {0}, prob: {1}".format(crack[0], crack[1])
+    crack = crack_section_subkey(2, 30, 0xF0, 4)
+    print "Bits  9..12: value: {0}, prob: {1}".format(crack[0], crack[1])
+    crack = crack_section_subkey(17, 1, 0xF, 0)
+    print "Bits 13..16: value: {0}, prob: {1}".format(crack[0], crack[1])
 
 
 if __name__=="__main__":

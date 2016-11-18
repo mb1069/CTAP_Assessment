@@ -1,9 +1,4 @@
-
-# Assessment
 s_box = [0x4, 0x0, 0xC, 0x3, 0x8, 0xB, 0xA, 0x9, 0xD, 0xE, 0x2, 0x7, 0x6, 0x5, 0xF, 0x1]
-# Practice
-# s_box = [0xE, 0x4, 0xD, 0x1, 0x2, 0xF, 0xB, 0x8, 0x3, 0xA, 0x6, 0xC, 0x5, 0x9, 0x0, 0x7]
-
 
 def dec2bin_chunks(key_val):
     val = "{0:b}".format(key_val)
@@ -21,18 +16,6 @@ def dec2bin(val, length):
 def bin2dec(val):
     return int(val, 2)
 
-
-def substitute(in_val):
-    return s_box[int(in_val)]
-
-def do_substitution(val):
-    bin_vals = dec2bin_chunks(val)
-    # print dec2bin(val, 16)
-    # print bin_vals
-    sub_vals = [dec2bin(substitute(bin2dec(x)),4) for x in bin_vals]
-    sub_vals = "".join(sub_vals)
-    return bin2dec(sub_vals)
-
 def reverse_substitute(in_val):
     return s_box.index(int(in_val))
 
@@ -42,21 +25,8 @@ def do_reverse_substitution(val):
     sub_vals = "".join(sub_vals)
     return bin2dec(sub_vals)
 
-def permute(val):
-    a = list(dec2bin(val, 16))
-    permuted_val = [a[0], a[4], a[8], a[12], a[1], a[5], a[9], a[13], a[2], a[6], a[10], a[14], a[3], a[7], a[11], a[15]]
-    return bin2dec("".join(permuted_val))
-
-
-def round(val, last):
-    val = do_substitution(val)
-    if not last:
-        val = permute(val)
-    return val
-
 def calculate_xor_profiles():
     inputs = 15
-
     maxs = 0
     differential_pairs = []
     for x in range(0, 15):
@@ -93,21 +63,18 @@ def crack_section_subkey(plain_diff, cipher_diff, mask, shift):
                     prob = prob + 1
             prob = float(prob) / len(vals)
             subkeys.append((subkey, prob))
-            # print subkey, prob, prob*len(vals), len(vals)
     subkeys.sort(key = lambda x:x[1], reverse=True)
     return subkeys[0]
 
-
 def main():
     crack = crack_section_subkey(12, 12288, 0xF000, 12)
-    print "Bits   1..4: value: {0}, prob: {1}".format(crack[0], crack[1])
+    print "Bits 1..4: value:    {0},    prob:  {1}".format(crack[0], crack[1])
     crack = crack_section_subkey(13, 768, 0xF00, 8)
-    print "Bits   5..8: value: {0}, prob: {1}".format(crack[0], crack[1])
-    crack = crack_section_subkey(2, 30, 0xF0, 4)
-    print "Bits  9..12: value: {0}, prob: {1}".format(crack[0], crack[1])
+    print "Bits 5..8: value:    {0},    prob:  {1}".format(crack[0], crack[1])
+    crack = crack_section_subkey(2, 48, 0xF0, 4)
+    print "Bits 9..12: value:   {0},    prob:  {1}".format(crack[0], crack[1])
     crack = crack_section_subkey(17, 1, 0xF, 0)
-    print "Bits 13..16: value: {0}, prob: {1}".format(crack[0], crack[1])
-
+    print "Bits 13..16: value:  {0},    prob:  {1}".format(crack[0], crack[1])
 
 if __name__=="__main__":
     main()

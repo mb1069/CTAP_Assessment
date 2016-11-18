@@ -1,0 +1,219 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+		]
+	},
+	"buffers":
+	[
+		{
+			"contents": "\\documentclass[british,11pt,a4paper]{article}\n\\usepackage[british]{babel}\n\\usepackage[margin=0.5in, bottom=0.5in, top=0.5in, footskip=0.25in]{geometry}\n\\usepackage[titletoc]{appendix}\n\\usepackage{fancyhdr}\n\\usepackage{mathtools}\n\\usepackage[numbers]{natbib}\n\\usepackage{pgfplotstable,filecontents}\n\\usepackage{hyperref}\n\\usepackage{booktabs}usepackage{wrapfig}\n\\usepackage{listings}\n\\usepackage{color}\n\\setcounter{secnumdepth}{2}\n\\setcounter{tocdepth}{2}\n\\renewcommand{\\arraystretch}{1.2}\n\\renewcommand\\thesection{\\arabic{section}}\n\\renewcommand\\thesubsection{\\roman{subsection}.}\n\\renewcommand\\thesubsubsection{}\n\\newcommand*{\\Appendixautorefname}{appendix}\n\\pagestyle{fancy}\n\\fancyhf{}\n\\renewcommand{\\headrulewidth}{0pt}\n\\lfoot{Exam no: Y0076159}\n\\cfoot{\\thepage}\n\\lstset{\n  language=Haskell,\n  columns=fixed,\n  breaklines=true,\n  basicstyle=\\ttfamily\\footnotesize\n  }\n\n\\usepackage[nottoc]{tocbibind}\n\\usepackage{csvsimple}\n\n\\begin{document}\n\\title{CTAP Open Assessment2}\n\\author{Exam no: Y0076159}\n\\date{\\today}\n\\maketitle\n\\tableofcontents\n\\clearpage\n\\section{Breaking Stream Ciphers}\n\\subsection{Implementation and Challenge}\nThe stream cipher implementation, found in \\autoref{app:stream} (written in Python),\ncan be ran using the Python 2.7.6 compiler with the command \\lstinline{python stream.py}. This will produce the\nchallenge 25 bit output of 3 Lfsrs with initial states 97, 975 and 6420:\n\n1 0 1 0 1 0 1 1 1 0 1 0 1 1 0 0 0 0 0 0 1 0 0 1 1\n\n\\subsubsection{Code description}\nThe class \\lstinline{Lfsr} implements an LFSR with a tap sequence, size and initial state. It contains 2 methods:\n\\lstinline{calc_tap}, which calculates the tap value for the current register value, and \\lstinline{shift} which\ncalculates the tap value, shifts the register and outputs the register's value. The 3 LFSR's are combined using\n\\lstinline{combine_lfsr_outputs}, which uses a lookup table to implement the boolean operation.\n\n\\subsection{Cryptanalysis}\n\\subsubsection{Analysis}\n\n\\begin{center}\n\t\\begin{tabular}{@{}llll@{}}\\label{tab:streamattack} \\\\\n\t\t\\toprule \\\\\n\t\tLinear func.                  & Walsh transform & Attack No & Attack description                                           \\\\\n\t\t\\midrule \\\\\n\t\t\\(R_3\\) & 0 \\\\\n\t\t\\(R_2\\)                       & 0               &           &                                                              \\\\\n\t\t\\(R_2 \\oplus R_3\\)            & 0               &           &                                                              \\\\\n\t\t\\(R_1\\)                       & -4              & 1         & No dependencies, has a single outlier agreement (see figure) \\\\\n\t\t\\(R_1 \\oplus R_3\\)            & -4              & 3         & Requires \\(R_1\\), attack with \\(R_1 \\oplus R_3 \\oplus K\\)    \\\\\n\t\t\\(R_1 \\oplus R_2\\)            & 4               & 2         & Requires \\(R_1\\), attack with \\(R_1 \\oplus R_2 \\oplus K\\)    \\\\\n\t\t\\(R_1 \\oplus R_2 \\oplus R_3\\) & -4              &           &                                                              \\\\\n\n\t\t\\bottomrule \\\\\n\t\\end{tabular}\n\\end{center}\nUsing the walsh transform displayed in \\autoref{app:streamattack}, we can implement a divide-and-conquer strategy.\nAs LFSR1 correlates quite strongly with the output (walsh value of -4, 2 agreements and 6 disagreements resulting in a probability of 2/8 that it will agree with the function's output, with a bias of 0.25),\nit can be brute-forced to obtain it's key value by iterating over the space of subkeys, and finding the one with the highest agreement (subkey value 27, with an agreement of 0.253).\n\nThe next attack targets \\(R_1 \\oplus R_2\\), as it has a walsh value of 4 (6 agreements and 2 disagreements resulting in a probability of 6/8, and a bias of -0.25).\nThe search space is reduced from \\(O(n^{7} * n^{11})=O(n^{18})\\) to \\(O(n^7 + n^{11})=O(n^{11}))\\) as we now know the key for LFSR1, allowing us to rapidly brute force the subkey for LFSR2 (value 1357, with agreement 0.247).\n\nFinally LFSR3 can be attacked using \\(R_1 \\oplus R_3\\), with a walsh value of -4 (same agreements, disagreements, probability of correlation and bias as previous).\nAs LFSR1's key is known, the search space is also reduced for this attack from \\(O(n^{7} * n^{13})=O(n^{20})\\) to \\(O(n^7 + n^{13})=O(n^{13}))\\). This resulted in the subkey for LFSR3 (value 7531, with agreemnt 0.245).\n\nUsing this strategy, we have succesfully attacked all 3 shift registers in a severely reduced search space (\\(O(n^{7+11+13})>(O(n^{7}+n^{11}+n^{13})=O(n^{13}))\\) (a reduction of 18 bits), resulting in the set of subkeys: 27, 1357, and 7531.\n\n\\subsubsection{Attack Implementation}\nThe Python program which implements this attack loads a keystream from \\lstinline{stream.txt}, and begins by brute forcing the first register.\nThis is achieved by iterating over all possible keys, recording their agreement with the given data, and returning the key with the highest normalised agreement.\nThe next 2 LFSR's are then broken by iterating over each respective set of possible keys in combination with the output of LFSR1 using the previously known key.\nThis results in the set of initial states: \\lstinline{lfsr1: 27, lfsr2: 1357, lfsr3: 7531}\n\n\\subsection{Improvement}\nThe current function's key weakness is the correlation of a single shift register (LFSR1) with the output: this allows the key to be brute forced in \\(O(n^7)\\), followed by the other two keys in \\(On^{11}\\) and \\(On^{13}\\).\nAs such, the current function is not correlation immune to any significant order.\nBy changing the combination function's output to 1 0 0 1 0 1 1 0 (two bit flips on L001 and L101), we can ensure the function\nis correlation immune to order 2, as the Walsh-Hadamard values for \\(R_1\\),\n\\(R_2\\),  \\(R_3\\),  \\(R_1 \\oplus R_2\\), \\(R_1 \\oplus R_3\\) and \\(R_1 \\oplus R_3\\), are now 0,\nand therefore have no exploitable correlation exist other than all 3 registers combined; this is visible in the table below.\n\n\\begin{center}\n\t\\begin{tabular}{@{}lll@{}}\\label{tab:walsh2} \\\\\n\t\t\\toprule \\\\\n\t\tInput & \\(f\\) & \\(w\\) \\\\\n\t\t\\midrule \\\\\n\t\t000   & 1     & 0     \\\\\n\t\t001   & 0     & 0     \\\\\n\t\t010   & 0     & 0     \\\\\n\t\t011   & 1     & 0     \\\\\n\t\t100   & 0     & 0     \\\\\n\t\t101   & 1     & 0     \\\\\n\t\t110   & 1     & 0     \\\\\n\t\t111   & 0     & -8    \\\\\n\t\t\\bottomrule \\\\\n\t\\end{tabular}\n\\end{center}\nThis would restrict the attack vector to a combination of LFSR1, LFSR2 and LFSR3 simultaneously, with a Walsh-Hadamard value of -8 for \\(R_1 \\oplus R_2 \\oplus R_3\\); this is acceptable as exploiting\nthis would require iterating over the complete keyset \\(O(n^{7+11+13}) = O(n^{31})\\), causing the time complexity to be significantly higher than the previous \\(O(n^{13}))\\).\n\\clearpage\n\\section{Differential Cryptanalysis}\n\\subsection{Implementation and Challenge}\nThe block cipher found in \\autoref{app:block} (written in Python),\ncan be ran using the Python 2.7.6 compiler with the command \\lstinline{python block.py}. This will produce the\nchallenge output of 45858 (1011001100100010 in binary).\n\\subsection{Code description}\nThe block cipher is implemented using the \\lstinline{do_4_rounds} method, which controls the execution of substitutions, permutations or combinations\nof intermediary results with subkeys dependent on the round. These sub-methods are implemented in \\lstinline{do_substitution, permute, and combine_key} respectively.\n\\subsection{Cryptanalysis}\n\\subsubsection{Analysis}\nFollowing Hey's tutorial, a differential cryptanalysis attack was undertaken on\nthe S-box. The XOR table of differences was generated using \\lstinline{calculate_xor_profiles()} in \\autoref{app:blockattack}.\nThis indicated a number of high probability difference pairs:\nX=1, Y=3, Diff = 8\nX=5, Y=8, Diff = 8\nX=8, Y=14, Diff= 8\n\nX=12,Y=5, Diff = 6\nX=13,Y=6, Diff = 6\nX=4, Y=11, Diff = 6\nX=9, Y=13, Diff = 6\n\\begin{center}\n\t\\begin{tabular}{@{}lll@{}}\\label{tab:walsh2} \\\\\n\t\t\\toprule \\\\\n\t\t$\\triangle X$ & $\\triangle Y$ & Difference \\\\\n\t\t1 & 3 & 8 \\\\\n    5 & 8 & 8 \\\\\n    8 & 14 & 8 \\\\\n    12 & 5 & 6 \\\\\n    13 & 6 & 6 \\\\\n    4 & 11 & 6 \\\\\n    9 & 13 & 6 \\\\\n\t\t\\bottomrule \\\\\n\t\\end{tabular}\n\\end{center}\n\n\\subsubsection{Implementation}\nHigh differential characteristics for\n\n\nAttack pairs\nAttacked S, Diff Plain, Diff Cipher, Found keys\nS44, 17, 1, KEYS= 5\nS43, 2, 30, KEYS = 13\nS42, 13, 768, KEYS = 13\nS41, 12, 12288, KEYS = 13\n\\subsubsection{Challenge}\n\n\\subsection{Improvements}\nChange S-box to\n3, 8, 0, 10, 9, 11, 4, 13, 14, 2, 7, 6, 5, 1, 15\n\\clearpage\n\\section{Timing Analysis}\n\\subsection{Example of a real-world timing analysis attack}\n\\cite{Kopf2009-mh},\n\\subsection{Countering timing attacks}\n\n\\subsubsection{Removing data or key dependent branching}\nThe simplest form of timing attack involves estimating the hamming weight in a key\nbased on the execution time of an encryption algorithm. This is possible due to\nkey-dependent branch execution, resulting in a correlation between cycle execution time\nand key bit value. An example of this issue occurs in RC5\n\\cite{Handschuh1999} due to variations in the computational time of rotations.\nData-dependent computational requirements also occur in modular exponentiation, which is used by the RSA algorithm.\nThis form of attack can be mitigated by ensuring the algorithm does not conditionally branch,\ncausing it to take a longer but consistent time to execute the encryption.\n\n\\subsubsection{Noise}\nTiming attacks can also be mitigating by randomising the execution time of the algorithm\nKocher \\cite{kocher96timing} details a method of decreasing the accuracy of timing measurements\nby adding random delays to the processing time, causing the need for a larger number of ciphertexts to attack\nthe algorithm. This produces a result similar to bucketing, where increasing the time spent waiting reduces performance but increases security, and vice-versa.\n\n\\subsubsection{Blinding}\nBlinding is the obfurscation of data to harden RSA (or similar) algorithms to various side-channel attacks.\nThis involves the obfurscation of data before and after the execution of attackable sections of code,\nresulting in un-usable information if the attacker uses a standard timing attack.\nKocher \\cite{kocher96timing} has concluded this to be insufficient to fully mitigate timing attacks due to maliciously-designed modular exponeniator\ncausing timing spikes corresponding to exponent bits, revealing the hamming weight of the exponent.\n\n\\subsubsection{Balancing}\nBalancing is a timing attack mitigation implemented in a program by executing every operation on the complement of the data as well as the data.\nThis diminishes the correlation to single data bits \\cite{daemen-implementattacks}, resulting in a lack of correlation between hamming weight and timing data. This can be applied to a\nlarge number of operations, such as fixed offset shifts, bitwise operations and arithmetic operations.\n\\subsubsection{Bucketing}\nBucketing is a method of trading off computational performance while limiting the benefit of timing attack measurements.\nThis was first achieved by Kopf \\cite{Kopf2009-mh}, and consists of a discretization of possible execution times.\nBucketing is implemented by partitioning the system's execution times into intervals (called buckets) of variable length,\nwhere computations wait until the end of the current bucket's time before returning results of a computation. The effectiveness of this method\ncan be varied to either minimise computational penalty (by reducing bucket size to minimise waiting) or force the attacker to increase the sampling rate used to conduct the timing attack.\nKopf does provide an algorithm to find the optimal bucket size and frequency, allowing the program to maximise both it's performance and security.\n\n\\subsubsection{Cache timing attacks}\nBernstein \\cite{Bernstein05cache-timingattacks} details an attack vector based on cache hits and misses:\nthis is applicable to data-dependent lookups, for example in the AES algorithm.\nOn the assumption that the attacker can monitor the time taken by the victim to encrypt each character in the input,\na split in the location of a stored array (where part is stored on faster cache, and part is stored on slower ram) will reveal\nwhich section of the array was requested. In the case of AES, this could indicate which part of the S-box was requested, and therefore\nwhich value was inputted to the S-box. This attack vector can be mitigated by removing S-box lookups and instead implementing them using\nconstant time bit operations \\cite{Bernstein05cache-timingattacks}; this results in a timing attack immune software which is unfortunately much slower than using lookups.\nBernstein also notes that maintaining an S-box in cache is not reliably feasible due to lines of the S-box being kicked out of cache by\ncomputation other than AES. Similarly, cache-levels can also cause variations in access times for S-boxes which are entirely stored in cache,\nmitigating the measurable time difference but leaving some information to be attacked.\n\n\n\n\n\n\\clearpage\n\\section{Open cryptography}\n\\subsubsection{Should the public be allowed to use strong cryptographic algorithms?}\nhttp://web.cs.ucdavis.edu/~rogaway/papers/moral-fn.pdf\nhttps://www.technologyreview.com/s/519281/cryptographers-have-an-ethics-problem/\nhttps://www.cs.kent.ac.uk/people/staff/eab2/talks/Cryptographylawethics.pdf\n\n\\clearpage\n\\begin{appendices}\n\t\\section{Stream.py}\\label{app:stream}\n\t\\lstinputlisting[language=Python]{../part1/stream.py}\n  \\clearpage\n\n\t\\section{Walsh transform of combining function}\\label{app:walsh}\n  \\pgfplotstabletypeset[columns/Output/.style={string type}, col sep=comma,\n       columns={Output,L000, L001, L010, L011, L100, L101, L110, L111},\n      ]{walsh_correlations.csv}\n  \\clearpage\n\n  \\section{Streamattack.py}\\label{app:streamattack}\n  \\lstinputlisting[language=Python]{../part1/stream_attack.py}\n  \\clearpage\n\n\t\\section{Difference distribution table}\\label{app:diff_distrib_tab}\n  \\pgfplotstabletypeset[col sep=comma,\n       columns={Output Difference, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15},\n      ]{diff_distrib_table.csv}\n  \\clearpage\n  \\section{Block.py}\\label{app:block}\n  \\lstinputlisting[language=Python]{../part2/block.py}\n\n  \\section{Blockattack.py}\\label{app:blockattack}\n  \\lstinputlisting[language=Python]{../part2/block_attack.py}\n\\end{appendices}\n\\clearpage\n\\bibliographystyle{IEEEtranSN}\n\\bibliography{references}\n\\end{document}\n",
+			"file": "report.tex",
+			"file_size": 14366,
+			"file_write_time": 131239393787169570,
+			"settings":
+			{
+				"buffer_size": 14364,
+				"line_ending": "Unix"
+			}
+		}
+	],
+	"build_system": "",
+	"build_system_choices":
+	[
+	],
+	"build_varint": "",
+	"command_palette":
+	{
+		"height": 332.0,
+		"last_filter": "inst",
+		"selected_items":
+		[
+			[
+				"inst",
+				"Package Control: Install Package"
+			],
+			[
+				"install",
+				"Package Control: Install Package"
+			]
+		],
+		"width": 485.0
+	},
+	"console":
+	{
+		"height": 126.0,
+		"history":
+		[
+			"import urllib.request,os,hashlib; h = 'df21e130d211cfc94d9b0905775a7c0f' + '1e3d39e33b79698005270310898eea76'; pf = 'Package Control.sublime-package'; ipp = sublime.installed_packages_path(); urllib.request.install_opener( urllib.request.build_opener( urllib.request.ProxyHandler()) ); by = urllib.request.urlopen( 'http://packagecontrol.io/' + pf.replace(' ', '%20')).read(); dh = hashlib.sha256(by).hexdigest(); print('Error validating download (got %s instead of %s), please try manual install' % (dh, h)) if dh != h else open(os.path.join( ipp, pf), 'wb' ).write(by)"
+		]
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"expanded_folders":
+	[
+		"/usr/userfs/m/mb1069/CTAP/CTAP_Assessment",
+		"/usr/userfs/m/mb1069/CTAP/CTAP_Assessment/report"
+	],
+	"file_history":
+	[
+		"/usr/userfs/m/mb1069/CTAP/CTAP_Assessment/report/epor.sublime-project"
+	],
+	"find":
+	{
+		"height": 0.0
+	},
+	"find_in_files":
+	{
+		"height": 0.0,
+		"where_history":
+		[
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"selected": 0,
+			"sheets":
+			[
+				{
+					"buffer": 0,
+					"file": "report.tex",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 14364,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								341,
+								341
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/LaTeX/LaTeX.sublime-syntax"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"type": "text"
+				}
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 0.0
+	},
+	"input":
+	{
+		"height": 0.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.find_results":
+	{
+		"height": 0.0
+	},
+	"pinned_build_system": "",
+	"project": "CTAP.sublime-project",
+	"replace":
+	{
+		"height": 0.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_symbol":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"selected_group": 0,
+	"settings":
+	{
+	},
+	"show_minimap": true,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 150.0,
+	"status_bar_visible": true,
+	"template_settings":
+	{
+	}
+}

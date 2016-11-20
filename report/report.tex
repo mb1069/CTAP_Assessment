@@ -1,9 +1,6 @@
 % TODO finish part 2.3
 % TODO finish part 3
 % TODO finish part 4
-% TODO finish simplifying/commenting code
-
-
 
 \documentclass[british,11pt,a4paper]{article}
 \usepackage[british]{babel}
@@ -189,24 +186,22 @@ The list of potential sub-keys is then ordered by highest agreement, and the mos
 \\
 This attack is repeated 4 times to attack each 4 bit section of the sub-key, as visible in \lstinline{main()}.
 
-
+{}
 \subsection{Improvements}
-The resilience of the cipher could be in two (non-mutually exclusive) ways. Firstly, the addition of additional rounds would significantly decrease the likelihood of finding high-probability paths through the substitution-permutation network. This could cause brute-forcing algorithms to produce hypothetical sub-key sections which are proportionally less agreeable to plain-text/cipher-text pairs than erroneous keys, and therefore less liable to have a superior agreement over other sub-key sections.
+The resilience of the cipher could be improved in two approaches. Firstly, the addition of additional rounds would significantly decrease the likelihood of finding high-probability paths through the substitution-permutation network. This could cause brute-forcing algorithms to produce hypothetical sub-key sections which are proportionally less agreeable to plain-text/cipher-text pairs than erroneous keys, and therefore less liable to have a superior agreement over other sub-key sections. This could however be overcome with the use of additional computational time and a larger set of plain-text/cipher-text pairs to improve the significance of the obtained statistics.
 \\  
 S-boxes present the other significant area for resilience; an S-box's strength can be seen as a combination of it's non-linearity (avoid the possibility of finding linear combinations of inputs which agree with linear combinations of subsets of outputs) and minimal autocorrelation (correlations of inputs which satisfy a difference with outputs). \citet{nyberg} details a mapping for S-boxes which are 'differentially uniform', which entails that "for every non-zero input difference and any output difference the number of possible inputs has a uniform upper bound". As such, mappings obeying this property would cause further difficulty in finding biased paths through the substitution-permutation network.  
 \\
-This does contrast with research by \citet{Lawrence_Brown}, who finds that the use of bent functions (with flat XOR profile) are in fact easily broken. 
-
-% TODO FINISH WRITING ABOUT LAWRENCE
-% http://ro.uow.edu.au/cgi/viewcontent.cgi?article=2099&context=infopapers
+The search for methods to develop maximally non-linear S-boxes have led to the adaption of bent functions (which were discovered prior to their application to cryptography) to the definition of the strict avalanche criterion (SAC) by \citet{Forre1990-ll}. This defines a criteria for maximally non-linear functions, whereby a change in a maximally high number of input bits causes each output bit to change with a 50\% probability. A method to construct such functions is details in \citeauthor{Forre1990-ll} details a method of constructing SAC-fulfilling functions which flattens the difference distribution table. These methods are further explored by \citet{Adams1990-nz}, who developed a quicker method for generating S-boxes fulfilling this criteria.
 
 
-Change S-box to
-3, 8, 0, 10, 9, 11, 4, 13, 14, 2, 7, 6, 5, 1, 15
+% Change S-box to
+% 3, 8, 0, 10, 9, 11, 4, 13, 14, 2, 7, 6, 5, 1, 15
 \clearpage
 \section{Timing Analysis}
 \subsection{Example of a real-world timing analysis attack}
-\cite{Kopf2009-mh},
+\cite{Brumley2005-ez}
+https://crypto.stanford.edu/~dabo/papers/ssl-timing.pdf
 \subsection{Countering timing attacks}
 
 \subsubsection{Removing data or key dependent branching}
@@ -220,7 +215,7 @@ This form of attack can be mitigated by ensuring the algorithm does not conditio
 causing it to take a longer but consistent time to execute the encryption.
 
 \subsubsection{Noise}
-Timing attacks can also be mitigating by randomising the execution time of the algorithm
+Timing attacks can also be mitigating by randomizing the execution time of the algorithm
 \citet{kocher96timing} details a method of decreasing the accuracy of timing measurements
 by adding random delays to the processing time, causing the need for a larger number of cipher-texts to attack
 the algorithm. This produces a result similar to bucketing, where increasing the time spent waiting reduces performance but increases security, and vice-versa.

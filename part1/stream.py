@@ -21,6 +21,7 @@ class Lfsr:
         self.reg_val = [new_val] + self.reg_val
         return self.reg_val.pop()
 
+
 # Implements the boolean function combining LFSR outputs
 def combine_lfsr_outputs(out_1, out_2, out_3):
     val = str(out_1) + str(out_2) + str(out_3)
@@ -28,8 +29,9 @@ def combine_lfsr_outputs(out_1, out_2, out_3):
     sub_arr = [1, 1, 0, 1, 0, 0, 1, 0]
     return str(sub_arr[val])
 
+
 # Static instantiation of every LFSR
-arr0 = [1,1,0,0,0,0,1]
+arr0 = [1, 1, 0, 0, 0, 0, 1]
 l0 = Lfsr(7, [5, 6], arr0)
 
 arr1 = [0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1]

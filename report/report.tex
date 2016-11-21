@@ -1,4 +1,3 @@
-% TODO finish part 2.3
 % TODO finish part 3
 % TODO finish part 4
 
@@ -17,13 +16,13 @@
 \usepackage{color}
 \usepackage{graphicx}
 \usepackage{siunitx}
+\usepackage[parfill]{parskip}
 \usepackage{tikz} % To generate the plot from csv
 \usepackage{pgfplots}
 \usepgfplotslibrary{statistics}
 
 \pgfplotsset{compat=newest} % Allows to place the legend below plot
 \usepgfplotslibrary{units} % Allows to enter the units nicely
-
 
 \graphicspath{ {images/} }
 
@@ -89,7 +88,7 @@ calculates the tap value, shifts the register and outputs the register's value. 
 		\bottomrule \\
 	\end{tabular}
 \end{center}
-Using the Walsh transform displayed in \autoref{app:streamattack}, we can implement a divide-and-conquer strategy.
+Using the Walsh transform displayed in \autoref{app:streamattack}, we can implement a divide-and-conquer strategy as first detailed by \citet{meider}.
 LFSR1 correlates quite strongly with the output (Walsh value of -4, 2 agreements and 6 disagreements resulting in a probability of 2/8 that it will agree with the function's output, with a bias of 0.25); this is reflected by the outlying value in the graph of sub-keys and their agreements with outputs in \autoref{app:lfsragreements}. As such, it can be brute-forced to obtain it's key value by iterating over the space of sub-keys, and finding the one with the highest agreement (sub-key value 27, with an agreement of 0.253).
 
 The next attack targets \(R_1 \oplus R_2\), as it has a Walsh value of 4 (6 agreements and 2 disagreements resulting in a probability of 6/8, and a bias of -0.25). It is not feasible to brute-force this LFSR due to the lack of any outlying sub-key agreement.
@@ -107,9 +106,10 @@ The next 2 LFSR's are then broken by iterating over each respective set of possi
 This results in the set of initial states: \lstinline{lfsr1: 27, lfsr2: 1357, lfsr3: 7531}.
 
 \subsection{Improvement}
-The current function's key weakness is the correlation of a single shift register (LFSR1) with the output: this allows the key to be brute forced in \(O(n^7)\), followed by the other two keys in \(On^{11}\) and \(On^{13}\).
-As such, the current function is not correlation immune to any significant order.
-By changing the combination function's output to 1 0 0 1 0 1 1 0 (two bit flips on L001 and L101), we can ensure the function
+The current cipher's key weakness is the correlation of a single shift register (LFSR1) with the output: this allows the key to be brute forced in \(O(n^7)\), followed by the other two keys in \(On^{11}\) and \(On^{13}\).
+As such, the current function is not correlation immune to any significant order, hence why it was significantly vulnerable to a divide and conquer attack. As demonstrated by \citet{siegenthaler}, improving this correlation immunity would greatly increase the complexity of a divide and conquer attack, as demonstrated below.
+
+By changing the combination function's output to 1 0 0 1 0 1 1 0 (two bit flips on L001 and L101, found by manual experimentation), we can ensure the function
 is correlation immune to order 2, as the Walsh-Hadamard values for \(R_1\),
 \(R_2\),  \(R_3\),  \(R_1 \oplus R_2\), \(R_1 \oplus R_3\) and \(R_1 \oplus R_3\), are now 0,
 and therefore have no exploitable correlation exist other than all 3 registers combined; this is visible in the table below.
@@ -131,10 +131,29 @@ and therefore have no exploitable correlation exist other than all 3 registers c
 \end{center}
 This would restrict the attack vector to a combination of LFSR1, LFSR2 and LFSR3 simultaneously, with a Walsh-Hadamard value of -8 for \(R_1 \oplus R_2 \oplus R_3\); this is acceptable as exploiting
 this would require iterating over the complete key-set \(O(n^{7+11+13}) = O(n^{31})\), causing the time complexity to be significantly higher than the previous \(O(n^{13}))\).
+
+It would also be possible to add additional LSFR's to the cipher and adapting the boolean function to require all 4 LSFRs to be cracked simultaneously. In the same way that increasing the length of the registers, this would increase the complexity to \(O(n^{7+11+13+x})\) where \lstinline{x} is the length of the additional register, or the added number of bits to an LFSR.
+
+These methods would provide resilience to a divide-and-conquer attack by increasing the order of correlation immunity, causing the key-space to remain as the product of the key-space sizes of each register rather than their sum. However, other forms of attacks on stream ciphers can make them vulnerable if the cipher is poorly designed. Keeping in mind that the previously suggested combination function may not be robust these cases, we will now explore various other attack methodologies on stream ciphers, and methods to improve the robustness of the cipher to these attacks.
+
+The simplest of these is a reused key attack, where the same key is used to encrypt two different plain-texts. Using the commutative property of XOR, the two cipher texts can be XOR'd to cancel out the use of the random stream, and reveal \(A \oplus B\) (where A and B are plain-texts). If one of these message is known, retrieving the other's content is therefore trivial. This method was famously used to break the Lorenz cipher during WW2, but is easily fixable by using a pre-agreed method to generate one-time keys from a master key and initialisation vector. 
+
+In addition, a bit-flipping attack is feasible which allows a man-in-the-middle attack or replay attack to vary the contents of a cipher-text without knowing it's key. This is feasible if the attacker knows part of the content of the cipher-text, as well as the location of the known content in the cipher-text. By XORing that section of the cipher text with his content, and XORing the result with the message which is being tampered. This results in a message which corresponds to what the sender would have sent using the information the attacker wished to insert into the message. This could be prevented by including a message authentication codes (MAC) such as the hash of the plain-text in the communication, which could then be used to verify whether the message was tampered without equivalent tampering of the MAC. This is detailed by \citet{Isaacs}, with a case study of vulnerabilities in the Wired Equivalent Privacy (WEP) algorithm for wireless networks.
+
+\citet{courtois} details a newer form of attack on synchronous LFSR-based stream ciphers ("where each state is generated from the previous state independently of the plain-text") using a set of over-defined algebraic equations to approximate the output function, which allow him to greatly reduce the key-space; the case study used to detail his methodology involves breaking a single 128 bit LFSR cipher in \(2^{49}\) clock cycles. This vulnerability occurs due to a stream cipher's function using only a subset of state bits; this was novel for it's era as it showed a vulnerability in spite of satisfying all previously known security criteria. \citeauthor{courtois} adds to this criterion by stating that "there should be no non-trivial multivariate relations of low degree that relate key bits and one or many outputs bits of the cipher". 
+
+Measuring the robustness of a boolean function to algebraic attack was defined by \citet{Armknecht2006-sj}, whilst \citet{carlet} presented a methodology to generate boolean functions with maximum possible algebraic immunity, although the produced solutions had insufficient non-linearity, signifying a potential weakness to correlation attacks.
+
+An additional attack was demonstrated by \citet{helleseth}, who formulates a methodology based on using a minimal amount of key-stream bits. As such, to maximise a resistance to such an attack, increasing the cyclic period of the LFSRs would be necessary. This could be achieved by changing the tap function to one with a longer period, or extending the bit length of the register. A new class of boolean functions which are resistant to fast correlation attacks, Helleseth-Ronjom, Berlekamp-Massey and fast algebraic attacks was also presented by \citet{carlet2}.
+
+Finally, \citet{massey} provided an adaptation of the Berklekamp algorithm which allows the estimation of the length of an LFSR given \citet{massey} given an upper-bounded number of bits of the output sequence. Given that this could reveal a hidden structure of the cipher, strengthening against this attack may be crucial. As previously stated, \citeauthor{carlet2} provides a boolean function generation which gives a good resistance to this attack in addition to others, whilst the more computationally expensive options of increasing the key-space through increased key-lengths and a larger number of LFSRs is also an alternative.
+
+As such, suggested modifications to the cipher to improve it's robustness to common attacks would include lengthening the bit-width of each LFSR, adding LFSRs and utilising tap functions with maximal periods to increase the size of the key-space and resist Berlekamp-Massey attacks. The boolean combining function should be generated using \citeauthor{carlet2}\'s methodology \cite{carlet2}, (or alternately \citet{tang}) although given the pace at which this area of research continues to surpass itself it would not be surprising to find a better function generation methodology in the near future.
+
 \clearpage
 \section{Differential Cryptanalysis}
 \subsection{Implementation and Challenge}
-The block cipher found in \autoref{app:block} (written in Python),
+The block cipher found in \autoref{app:block} (written in Python),{}
 can be ran using the Python 2.7.6 compiler with the command \lstinline{python block.py}. This will produce the
 challenge output of 45858 (1011001100100010 in binary).
 \subsection{Code description}
@@ -186,13 +205,13 @@ The list of potential sub-keys is then ordered by highest agreement, and the mos
 \\
 This attack is repeated 4 times to attack each 4 bit section of the sub-key, as visible in \lstinline{main()}.
 
-{}
+
 \subsection{Improvements}
 The resilience of the cipher could be improved in two approaches. Firstly, the addition of additional rounds would significantly decrease the likelihood of finding high-probability paths through the substitution-permutation network. This could cause brute-forcing algorithms to produce hypothetical sub-key sections which are proportionally less agreeable to plain-text/cipher-text pairs than erroneous keys, and therefore less liable to have a superior agreement over other sub-key sections. This could however be overcome with the use of additional computational time and a larger set of plain-text/cipher-text pairs to improve the significance of the obtained statistics.
 \\  
 S-boxes present the other significant area for resilience; an S-box's strength can be seen as a combination of it's non-linearity (avoid the possibility of finding linear combinations of inputs which agree with linear combinations of subsets of outputs) and minimal autocorrelation (correlations of inputs which satisfy a difference with outputs). \citet{nyberg} details a mapping for S-boxes which are 'differentially uniform', which entails that "for every non-zero input difference and any output difference the number of possible inputs has a uniform upper bound". As such, mappings obeying this property would cause further difficulty in finding biased paths through the substitution-permutation network.  
 \\
-The search for methods to develop maximally non-linear S-boxes have led to the adaption of bent functions (which were discovered prior to their application to cryptography) to the definition of the strict avalanche criterion (SAC) by \citet{Forre1990-ll}. This defines a criteria for maximally non-linear functions, whereby a change in a maximally high number of input bits causes each output bit to change with a 50\% probability. A method to construct such functions is details in \citeauthor{Forre1990-ll} details a method of constructing SAC-fulfilling functions which flattens the difference distribution table. These methods are further explored by \citet{Adams1990-nz}, who developed a quicker method for generating S-boxes fulfilling this criteria.
+The search for methods to develop maximally non-linear S-boxes have led to the adoption of bent functions (which were discovered prior to their application to cryptography) to the definition of the strict avalanche criterion (SAC) by \citet{Forre1990-ll}. This defines a criteria for maximally non-linear functions, whereby a change in a maximally high number of input bits causes each output bit to change with a 50\% probability. A method to construct such functions is details in \citeauthor{Forre1990-ll} details a method of constructing SAC-fulfilling functions which flattens the difference distribution table. These methods are further explored by \citet{Adams1990-nz}, who developed a quicker method for generating S-boxes fulfilling this criteria.
 
 
 % Change S-box to
@@ -201,7 +220,20 @@ The search for methods to develop maximally non-linear S-boxes have led to the a
 \section{Timing Analysis}
 \subsection{Example of a real-world timing analysis attack}
 \cite{Brumley2005-ez}
+Assumptions:
+ A remote timing attack against openSSL used on a server shared by the attacker and victim in separate virtual machines.
+ Fine resolution clock
+ Not practical if attack/victim machines are different
+
+
+Attacks a commonly used open source SSL library which uses Montgomery reduction (reduction modulo using a while-loop checking and subtraction called an extra-reduction) to speed up RSA decryption; these cause a timing difference for different inputs. As \citeauthor{Brumley2005-ez} found a correlation between the probability of an extra reduction during an exponentiation \(g^d * (mod (q))\) is proportional to the difference between g and q.
+
+As such, the attack focuses on the factorisation of the RSA modulus: $N = pq$ with $q<p$. Approximations of q are constructed and refined as the attack continues, one bit at a time (most significant first), followed by Coppersmith's algorithm to retrieve the full factorisation. 
+The decryption of the top few bits will show two timing peaks: openSSL will always display a peak for q first, followed by one for p. After decrypting these top few bits, the difference in time taken to decrypt a number with these same top bits (and one with the next least significant bit set to 1) is measured, and a large difference in timing values will suggest that the next bit is 0, whereas a small difference will suggest the next bit is 1.
+
+This is used in an SSL handshake, where the SSL server performs a decryption from a CLIENT-KEY-EXCHANGE message from a client. If improperly formatted, a master key cannot be computed by both parties, and instead the server sends an ALERT message to the client indicating a handshake failure. As such, repeatedly sending guesses instead of CLIENT-KEY-EXCHANGE messages causes the server to decrypt the message and check it's formatting (which is invalid on purpose) and send an Alert. The client measures the time from sending the fake CLIENT-KEY-EXCHANGE to receiving the Alert message, and repeats this for each bit. As $N=pq$, once q is known, the server's private key is exposed.
 https://crypto.stanford.edu/~dabo/papers/ssl-timing.pdf
+
 \subsection{Countering timing attacks}
 
 \subsubsection{Removing data or key dependent branching}

@@ -1,9 +1,12 @@
-% TODO finish part 3
+% TODO finish part 2.3
 % TODO finish part 4
+% TODO proof-read everything
+% TODO double check appendeces
+% Comment on low probability for last 4 keybits in 2.2
 
-\documentclass[british,11pt,a4paper]{article}
+\documentclass[british,10pt,a4paper]{article}
 \usepackage[british]{babel}
-\usepackage[margin=1in, bottom=1in, top=1in, footskip=0.25in]{geometry}
+\usepackage[margin=1in, bottom=0.75in, top=0.75in, footskip=0.25in]{geometry}
 \usepackage[titletoc]{appendix}
 \usepackage{fancyhdr}
 \usepackage{mathtools}
@@ -129,14 +132,13 @@ and therefore have no exploitable correlation exist other than all 3 registers c
 		\bottomrule \\
 	\end{tabular}
 \end{center}
-This would restrict the attack vector to a combination of LFSR1, LFSR2 and LFSR3 simultaneously, with a Walsh-Hadamard value of -8 for \(R_1 \oplus R_2 \oplus R_3\); this is acceptable as exploiting
-this would require iterating over the complete key-set \(O(n^{7+11+13}) = O(n^{31})\), causing the time complexity to be significantly higher than the previous \(O(n^{13}))\).
+This would restrict the attack vector to a combination of LFSR1, LFSR2 and LFSR3 simultaneously, with a Walsh-Hadamard value of -8 for \(R_1 \oplus R_2 \oplus R_3\); this is acceptable as exploiting this would require iterating over the complete key-set \(O(n^{7+11+13}) = O(n^{31})\), causing the time complexity to be significantly higher than the previous \(O(n^{13}))\).
 
 It would also be possible to add additional LSFR's to the cipher and adapting the boolean function to require all 4 LSFRs to be cracked simultaneously. In the same way that increasing the length of the registers, this would increase the complexity to \(O(n^{7+11+13+x})\) where \lstinline{x} is the length of the additional register, or the added number of bits to an LFSR.
 
 These methods would provide resilience to a divide-and-conquer attack by increasing the order of correlation immunity, causing the key-space to remain as the product of the key-space sizes of each register rather than their sum. However, other forms of attacks on stream ciphers can make them vulnerable if the cipher is poorly designed. Keeping in mind that the previously suggested combination function may not be robust these cases, we will now explore various other attack methodologies on stream ciphers, and methods to improve the robustness of the cipher to these attacks.
 
-The simplest of these is a reused key attack, where the same key is used to encrypt two different plain-texts. Using the commutative property of XOR, the two cipher texts can be XOR'd to cancel out the use of the random stream, and reveal \(A \oplus B\) (where A and B are plain-texts). If one of these message is known, retrieving the other's content is therefore trivial. This method was famously used to break the Lorenz cipher during WW2, but is easily fixable by using a pre-agreed method to generate one-time keys from a master key and initialisation vector. 
+The simplest of these is a reused key attack, where the same key is used to encrypt two different plain-texts. Using the commutative property of XOR, the two cipher texts can be XOR'd to cancel out the use of the random stream, and reveal \(A \oplus B\) (where A and B are plain-texts). If one of these message is known, retrieving the other's content is therefore trivial. This method was famously used to break the Lorenz cipher during WW2 \cite{sale}, but is easily fixable by using a pre-agreed method to generate one-time keys from a master key and initialisation vector. 
 
 In addition, a bit-flipping attack is feasible which allows a man-in-the-middle attack or replay attack to vary the contents of a cipher-text without knowing it's key. This is feasible if the attacker knows part of the content of the cipher-text, as well as the location of the known content in the cipher-text. By XORing that section of the cipher text with his content, and XORing the result with the message which is being tampered. This results in a message which corresponds to what the sender would have sent using the information the attacker wished to insert into the message. This could be prevented by including a message authentication codes (MAC) such as the hash of the plain-text in the communication, which could then be used to verify whether the message was tampered without equivalent tampering of the MAC. This is detailed by \citet{Isaacs}, with a case study of vulnerabilities in the Wired Equivalent Privacy (WEP) algorithm for wireless networks.
 
@@ -198,19 +200,17 @@ Using these paths, we were able to find a degree of certainty with which we can 
 As such, we were able to fully extract sub-key \(K_5\) with a value of \lstinline{0xDDD5}.
 \subsubsection{Implementation}
 As detailed above, the difference distribution table found in \autoref{app:diff_distrib_tab} was generated using \lstinline{calculate_xor_profiles()}, which simply iterated over every pair of possible 4 bit differences, and evaluated them against the configuration of the S-box. The list of differential pairs is then printed to console in descending probability of occurrence.
-\\
+
 Using the manually-found paths through the substitution/permutation network, the sub-key brute-forcing was implemented in the \lstinline{crack_section_subkey()} method which can be found in \autoref{app:blockattack}. It takes in $\triangle P$ and $\triangle U$ values, along with a mask and shift to indicate which group of 4 bits is attacked by the iteration. The data is then loaded from block.txt, and each possible 4-bit sub-key is iterated over each plain-text/cipher-text combination. Another plain-text/cipher-text combination is found by xor-ing the current plain-text with the requested difference, resulting in a second cipher-text. Both cipher-texts are then xor'd with the hypothetical sub-key (shifted to match the correct 4 bit cluster), and masked. They are then passed through the S-box in reverse, before being compared to the expected difference. 
-\\
-The list of potential sub-keys is then ordered by highest agreement, and the most promising key is returned.
-\\
-This attack is repeated 4 times to attack each 4 bit section of the sub-key, as visible in \lstinline{main()}.
+
+The list of potential sub-keys is then ordered by highest agreement, and the most promising key is returned. This attack is repeated 4 times to attack each 4 bit section of the sub-key, as visible in \lstinline{main()}.
 
 
 \subsection{Improvements}
 The resilience of the cipher could be improved in two approaches. Firstly, the addition of additional rounds would significantly decrease the likelihood of finding high-probability paths through the substitution-permutation network. This could cause brute-forcing algorithms to produce hypothetical sub-key sections which are proportionally less agreeable to plain-text/cipher-text pairs than erroneous keys, and therefore less liable to have a superior agreement over other sub-key sections. This could however be overcome with the use of additional computational time and a larger set of plain-text/cipher-text pairs to improve the significance of the obtained statistics.
-\\  
+
 S-boxes present the other significant area for resilience; an S-box's strength can be seen as a combination of it's non-linearity (avoid the possibility of finding linear combinations of inputs which agree with linear combinations of subsets of outputs) and minimal autocorrelation (correlations of inputs which satisfy a difference with outputs). \citet{nyberg} details a mapping for S-boxes which are 'differentially uniform', which entails that "for every non-zero input difference and any output difference the number of possible inputs has a uniform upper bound". As such, mappings obeying this property would cause further difficulty in finding biased paths through the substitution-permutation network.  
-\\
+
 The search for methods to develop maximally non-linear S-boxes have led to the adoption of bent functions (which were discovered prior to their application to cryptography) to the definition of the strict avalanche criterion (SAC) by \citet{Forre1990-ll}. This defines a criteria for maximally non-linear functions, whereby a change in a maximally high number of input bits causes each output bit to change with a 50\% probability. A method to construct such functions is details in \citeauthor{Forre1990-ll} details a method of constructing SAC-fulfilling functions which flattens the difference distribution table. These methods are further explored by \citet{Adams1990-nz}, who developed a quicker method for generating S-boxes fulfilling this criteria.
 
 
@@ -219,81 +219,96 @@ The search for methods to develop maximally non-linear S-boxes have led to the a
 \clearpage
 \section{Timing Analysis}
 \subsection{Example of a real-world timing analysis attack}
-\cite{Brumley2005-ez}
-Assumptions:
- A remote timing attack against openSSL used on a server shared by the attacker and victim in separate virtual machines.
- Fine resolution clock
- Not practical if attack/victim machines are different
+\citet{Brumley2005-ez} details an attack on the SSL algorithm which allows an attacker to reveal a server's private keys, thereby allowing the attacker to decode any subsequent messages encrypted using the victim's public keys. This attack assumes that the victim's server resides on the same machine as the attacker's and that the machine has a sufficiently fine clock granularity. The attack focuses on the Montgomery reduction used in RSA decryption, which can perform an additional subtraction to perform a reduction modulo, causing a time difference for different inputs. As such, a correlation between the probability of an extra reduction during an exponentiation \(g^d * (mod (q))\) is proportional to the difference between g and q.
 
+This relationship is exploited as follows: let $N = pq$ with $q<p$. Approximations of q are constructed and refined as the attack continues, one bit at a time (most significant first), followed by Coppersmith's algorithm to retrieve the full factorisation. The decryption of the top few bits will show two timing peaks: openSSL will always display a peak for q first, followed by one for p. After decrypting these top few bits, the difference in time taken to decrypt a number with these same top bits (and one with the next least significant bit set to 1) is measured, and a large difference in timing values will suggest that the next bit is 0, whereas a small difference will suggest the next bit is 1.
 
-Attacks a commonly used open source SSL library which uses Montgomery reduction (reduction modulo using a while-loop checking and subtraction called an extra-reduction) to speed up RSA decryption; these cause a timing difference for different inputs. As \citeauthor{Brumley2005-ez} found a correlation between the probability of an extra reduction during an exponentiation \(g^d * (mod (q))\) is proportional to the difference between g and q.
+This is used in an SSL handshake, where the SSL server performs a decryption from a CLIENT-KEY-EXCHANGE (CKE) message from a client. If improperly formatted, a master key cannot be computed by both parties, and instead the server sends an ALERT message to the client indicating a handshake failure. Sending guesses instead of CKE messages causes the server to decrypt the message and check it's formatting (which is invalid on purpose) and send an Alert. The client measures the time from sending the fake CKE to receiving the Alert message, and repeats this for each bit. As $N=pq$, once q is known, the server's private key is exposed.
 
-As such, the attack focuses on the factorisation of the RSA modulus: $N = pq$ with $q<p$. Approximations of q are constructed and refined as the attack continues, one bit at a time (most significant first), followed by Coppersmith's algorithm to retrieve the full factorisation. 
-The decryption of the top few bits will show two timing peaks: openSSL will always display a peak for q first, followed by one for p. After decrypting these top few bits, the difference in time taken to decrypt a number with these same top bits (and one with the next least significant bit set to 1) is measured, and a large difference in timing values will suggest that the next bit is 0, whereas a small difference will suggest the next bit is 1.
+\citeauthor{Brumley2005-ez} provides a viable attack with severe practical limitations: firstly, it requires the attacker to operate from a machine with sufficiently consistent response times from the server so that variations in network response times do not obscure variations in decryption time. Secondly, OpenSSL already includes a built-in blinding (see following section for details) function which \citeauthor{Brumley2005-ez} has found to cause this attack to fail; the only drawbacks of this defence include the need for a good source of random keys with which to combine the data, and a small performance degradation. Finally, the RSA algorithm could be implemented using bucketing or balancing operations to force all decryptions to take the same amount of time as the maximum decryption time, thereby removing any timing variations from the algorithm.
 
-This is used in an SSL handshake, where the SSL server performs a decryption from a CLIENT-KEY-EXCHANGE message from a client. If improperly formatted, a master key cannot be computed by both parties, and instead the server sends an ALERT message to the client indicating a handshake failure. As such, repeatedly sending guesses instead of CLIENT-KEY-EXCHANGE messages causes the server to decrypt the message and check it's formatting (which is invalid on purpose) and send an Alert. The client measures the time from sending the fake CLIENT-KEY-EXCHANGE to receiving the Alert message, and repeats this for each bit. As $N=pq$, once q is known, the server's private key is exposed.
-https://crypto.stanford.edu/~dabo/papers/ssl-timing.pdf
+As such, it is a viable method of attack on poorly setup servers, but is severely restricted in it's topographical applicability due to the need for consistent response times from a server, and is blinded by default in newer OpenSSL versions. As such it demonstrates the need to consider timing attacks in cryptography, but would not present a viable approach to attack many systems. This conclusion is confirmed by \citet{wong} who finds that \citeauthor{Brumley2005-ez}\'s publication led to the widespread usage of blinding techniques in SSL implementations, thereby preventing this form of timing attack.
+
 
 \subsection{Countering timing attacks}
 
 \subsubsection{Removing data or key dependent branching}
-The simplest form of timing attack involves estimating the hamming weight in a key
-based on the execution time of an encryption algorithm. This is possible due to
-key-dependent branch execution, resulting in a correlation between cycle execution time
-and key bit value. An example of this issue occurs in RC5
-\cite{Handschuh1999} due to variations in the computational time of rotations.
-Data-dependent computational requirements also occur in modular exponentiation, which is used by the RSA algorithm.
-This form of attack can be mitigated by ensuring the algorithm does not conditionally branch,
-causing it to take a longer but consistent time to execute the encryption.
+The hamming weight of a key can be estimated from the execution time of a data-dependent encryption algorithm due to key-dependent branch execution. An example of this issue occurs in RC5 \cite{Handschuh1999} due to variations in the computational time of rotations, or as previously discussed in the RSA algorithm's use of modular exponentiation.
+This can be mitigated by ensuring the algorithm does not conditionally branch, causing it to take a longer but consistent time to execute the encryption.
 
 \subsubsection{Noise}
-Timing attacks can also be mitigating by randomizing the execution time of the algorithm
-\citet{kocher96timing} details a method of decreasing the accuracy of timing measurements
-by adding random delays to the processing time, causing the need for a larger number of cipher-texts to attack
-the algorithm. This produces a result similar to bucketing, where increasing the time spent waiting reduces performance but increases security, and vice-versa.
+Timing attacks can also be mitigating by randomizing the execution time of the algorithm \citet{kocher96timing} details a method of decreasing the accuracy of timing measurements by adding random delays to the processing time, causing the need for a larger number of cipher-texts to attack the algorithm. This produces a result similar to bucketing, where increasing the time spent waiting reduces performance but increases security, and vice-versa.
 
 \subsubsection{Blinding}
-Blinding is the obfuscation of data to harden RSA (or similar) algorithms to various side-channel attacks.
-This involves the encoding of data before and after the execution of attackable sections of code using a bijective function,
-resulting in unusable information if the attacker uses a standard timing attack as the algorithm's state will be significantly less predictable.
-\citet{kocher96timing} has concluded this to be insufficient to fully mitigate timing attacks due to maliciously-designed modular exponentiation
-causing timing spikes corresponding to exponent bits, revealing the hamming weight of the exponent.
+Blinding is the obfuscation of data to harden RSA (or similar) algorithms to various side-channel attacks. This involves the encoding of data before and after the execution of attackable sections of code using a bijective function,
+resulting in unusable information if the attacker uses a standard timing attack as the algorithm's state will be significantly less predictable. \citet{kocher96timing} has concluded this to be insufficient to fully mitigate timing attacks due to maliciously-designed modular exponentiation causing timing spikes corresponding to exponent bits, revealing the hamming weight of the exponent.
 
 \subsubsection{Balancing}
-Balancing is a timing attack mitigation implemented in a program by executing every operation on the complement of the data as well as the data.
-This diminishes the correlation to single data bits \cite{daemen-implementattacks}, resulting in a lack of correlation between hamming weight and timing data. This can be applied to a
-large number of operations, such as fixed offset shifts, bitwise operations and arithmetic operations.
+Balancing is a timing attack mitigation implemented in a program by executing every operation on the complement of the data as well as the data. This diminishes the correlation to single data bits \cite{daemen-implementattacks}, resulting in a lack of correlation between hamming weight and timing data. This can be applied to a large number of operations, such as fixed offset shifts, bitwise operations and arithmetic operations.
 \subsubsection{Bucketing}
-Bucketing is a method of trading off computational performance while limiting the benefit of timing attack measurements.
-This was first achieved by \citet{Kopf2009-mh}, and consists of a discretization of possible execution times.
-Bucketing is implemented by partitioning the system's execution times into intervals (called buckets) of variable length,
-where computations wait until the end of the current bucket's time before returning results of a computation. The effectiveness of this method
-can be varied to either minimise computational penalty (by reducing bucket size to minimise waiting) or force the attacker to increase the sampling rate used to conduct the timing attack.
-\citeauthor{Kopf2009-mh} provide an algorithm to find the optimal bucket size and frequency, allowing the program to maximise both it's performance and security.
-One should note that bucketing would not improve resilience to power-monitoring attacks, as a long period of low power usage would indicate a wait.
+Bucketing is a method of trading off computational performance while limiting the benefit of timing attack measurements. This was first achieved by \citet{Kopf2009-mh}, and consists of a discretization of possible execution times.
+Bucketing is implemented by partitioning the system's execution times into intervals (called buckets) of variable length, where computations wait until the end of the current bucket's time before returning results of a computation. The effectiveness of this method can be varied to either minimise computational penalty (by reducing bucket size to minimise waiting) or force the attacker to increase the sampling rate used to conduct the timing attack. \citeauthor{Kopf2009-mh} provide an algorithm to find the optimal bucket size and frequency, allowing the program to maximise both it's performance and security. One should note that bucketing would not improve resilience to power-monitoring attacks, as a long period of low power usage would indicate a wait.
 
 \subsubsection{Cache timing attacks}
-\citet{Bernstein05cache-timingattacks} details an attack vector based on cache hits and misses:
-this is applicable to data-dependent lookups, for example in the AES algorithm.
-On the assumption that the attacker can monitor the time taken by the victim to encrypt each character in the input,
-a split in the location of a stored array (where part is stored on faster cache, and part is stored on slower ram) will reveal
-which section of the array was requested. In the case of AES, this could indicate which part of the S-box was requested, and therefore
-which value was imputed to the S-box. This attack vector can be mitigated by removing S-box lookups and instead implementing them using
-constant time bit operations \cite{Bernstein05cache-timingattacks}; this results in a timing attack immune software which is unfortunately much slower than using lookups.
-Bernstein also notes that maintaining an S-box in cache is not reliably feasible due to lines of the S-box being kicked out of cache by
-computation other than AES. Similarly, cache-levels can also cause variations in access times for S-boxes which are entirely stored in cache,
-mitigating the measurable time difference but leaving some information to be attacked.
-
-
-
-
+\citet{Bernstein05cache-timingattacks} details an attack based on cache hits for data-dependent lookups, for example in the AES algorithm. On the assumption that the attacker can monitor the time taken by the victim to encrypt each character in the input, a split in the location of a stored array (between cache and slower RAM) will reveal which section of the array was requested. In the case of AES, this could indicate which part of the S-box was requested, and therefore which value was imputed to the S-box. This attack vector can be mitigated by removing S-box lookups and instead implementing them using constant time bit operations \cite{Bernstein05cache-timingattacks}; this results in a timing attack immune software which is unfortunately much slower than using lookups.
+Bernstein also notes that maintaining an S-box in cache is not reliably feasible due to lines of the S-box being kicked out of cache (or between cache levels) by computation other than AES. 
 
 \clearpage
 \section{Open cryptography}
 \subsubsection{Should the public be allowed to use strong cryptographic algorithms?}
-http://web.cs.ucdavis.edu/~rogaway/papers/moral-fn.pdf
-https://www.technologyreview.com/s/519281/cryptographers-have-an-ethics-problem/
-https://www.cs.kent.ac.uk/people/staff/eab2/talks/Cryptographylawethics.pdf
+
+Snowden's disclosure on global surveillance in 2013 has brought to light the public right to cryptography as a mean of individual privacy. Global surveillance conducted by intelligence agencies and governments is currently an over-reach of individual rights to privacy as defined by article 12 of the United Nations declaration of Human Rights \cite{udhr}. As 'strong' cryptography would be a means of preventing governmental use of electronic surveillance cryptography has begun to gain ground amongst individuals. This has led government agencies to be unable to obtain evidence through legal means to incriminate criminals \cite{James_B_Coney}. As such, the usage of cryptography to the general public enables the conduct of criminal activity, which may be detrimental to the security of society as a whole. It is therefore simple to see that there is a discourse between an individual's wish to protect himself from his government and peers, or give his government the power to improve the safety of his environment.
+
+There are currently two significant contrasting paradigms of the implications of cryptography as a means of information security against government surveillance. \citet{James_B_Coney} (Director of the FBI) illustrates the need to sacrifice individual privacy to the benefit of government-provided security. Examples of this exist in most western countries, with the passing of law allowing the government to monitor individuals \cite{data_retention}. As this can easily be thwarted, an individual's right to use cryptography has become a technological barrier to law enforcement, and therefore the public's right to use strong cryptographic algorithms are preventing a government's law enforcement from operating effectively.
+
+In contrast, the cipherpunk movement \cite{Rogaway} sees universal surveillance as a facilitator for totalitarianism and an oppression of the freedom to express challenges to social norms, thereby thwarting social progress. \citeauthor{Rogaway} finally notes a belief that privacy can enhance security as often as it rubs against it; an example of this could be the use of cryptography to protect a company's data against non-governmental hackers. 
+
+Both paradigms have examples for and against them: the FBI's attempts to de-crypt an iPhone owned by a terrorist implicated in the San Bernardino shooting in California could have resulted in the inability to capture other terrorists due to the iPhone's encryption (although this was later hacked using a zero day), whereas the cyberpunk's appreciation for the public use of cryptography could be illustrated by the use of various classical ciphers during the American Civil War by the colonies against a much larger and oppressive government (the United Kingdom \cite{us_cipher}); this illustrates the ability of cryptography to maintain a balance of power between governments and individuals, preventing the former from becoming oppressive or detrimental to the latter.
+
+In regards to the protection of individuals from other individuals, it is undeniable that cryptography is a cornerstone to individual privacy by allowing us to communicate with confidentiality, integrity, authenticity, non-repudiation, anonymity and validation. Protecting our information and communication from criminals is necessary to the conduct of any financial transactions or secure communication which, if revealed, could greatly impact an individual's standard of living. 
+
+This demonstrates the need for a form of cryptography secure from individuals or small organisations, and should be taken into consideration when questioning public access to cryptography. This could take one of two forms depending on a government's position relative to it's citizens. If a government is assumed to be nefarious, such as a totalitarian regime, or a government which represses social change, cryptography would provide an emancipation for citizens at a hindrance to the government. The ability to conduct private communication and data storage would allow individuals to express deviations from the norm imposed by a government, thereby allowing them to encourage social advancement.
+
+However, if the government could be trusted to act only towards the benefit of it's citizens, an individual may favour allowing governmental surveillance to proceed, whilst maintaining some protection against individuals; this leads us to address the use of the word 'strong' in the premise of this section.
+
+Given the movement of cryptographic research from paradigm to paradigm (following the introduction of a new cryptographic attacks, or additional computational power, such as the movement from DES to AES), and the assumption that governmental organisations have the cryptographic advancement to crack existing standards of cryptography (for example the NSA's knowledge of differential cryptanalysis 19 years before it's discovery by \citet{biham}), it may not be far fetched to postulate that a large government intelligence agency (e.g: NSA, GHCQ, etc) may already have broken any cryptography considered 'secure', either through algorithmic means or back-doors. Assuming this intrusion into individual privacy could only benefit an individual; the altruistic government would not act in a detrimental way given that information, but would be able to prevent crime from the use of mass surveillance (on the assumption it is effective). However, as the data is still encrypted, individuals without means comparable to a government's would be unable to easily decipher the data. 
+
+An obvious issue to this would be the knowledge of the existence of a back door or feasible algorithm capable of breaking the cipher, but this is already the case for most known algorithms; the discovery of these issues is what has driven cryptographers to develop newer forms of cryptography, perpetuating the shift in paradigms. 
+
+While this scenario has it's benefits, one could hypothesise whether this mirrors the current involvement of governments in cryptography. In the same way that the NSA acted to improve the resilience of DES to differential cryptanalysis (without revealing their knowledge of differential cryptanalysis) we could hypothesise that the government is in fact guiding the development of cryptanalysis (to who's benefit?), and potentially acting on this information with the use of a second lucky inquisition (mirroring the use of 'spotter' aircraft over known targets to avoid divulging the use of ULTRA during WW2).
+
+%TODO reference
+
+PLAN:
+Currently cryptography defends us from over-reaching governments and agencies, but also facilitates an individual's ability to conduct criminal activity. 
+
+As such, a conflict between individual privacy and security currently exists. 
+	We will then explore whether the usage of encryption may be in the best interest of individuals, and conclude with a conditional response to the stated question.
+
+
+
+Two fold argument:
+- Is cryptography a viable form of privacy?
+	\citet{Rogaway}'s work on the ethics of cryptography introduces a cipherpunk movement, who believe cryptography is a key tool for protecting individual autonomy threatened by power.
+
+	\cite{Rogaway} "Cryptography does embed a tendency to empower ordinary people" as it is easily accessible to individuals with minimal resources. This allows individuals to protect themselves against much larger entities who's interests may clash with the individual's, such as governments or corporations.
+
+	\cite{Rogaway} This can depend on the source of the cryptanalysis: Governmental agencies may fight privacy and right, whereas academic research tends to improve cryptographic software available to the public. \citet{Narayanan} cites a divergence in cryptographic research between crypto-for-security and crypto-for-privacy, the latter of which has comparatively fallen behind.
+
+- Is it really feasible to believe the government can't crack all of our encryption anyways?
+ 	eg: WW2 use of ULTRA without revealing knowledge
+ 	counter-example: great pirate robert took ages to get caught
+ 	If true then encryption would only work against other individuals or small organisations without means equivalent to a government's or large corporation.
+
+- Should the public be allowed privacy at the cost of other social benefits?
+	\citet{Rogaway} Cipherpunks: "[Will] state and corporate interests eviscerate liberty through electronic surveillance".
+
+	\citet{Rogaway}: A lack of individual privacy diminishes effective political dissent, causing social progress to be unlikely.
+
+
+
+
+% http://thejaffes.org/sites/all/files/ethics.pdf
 
 \clearpage
 \begin{appendices}
@@ -302,7 +317,7 @@ https://www.cs.kent.ac.uk/people/staff/eab2/talks/Cryptographylawethics.pdf
 	\\
 	  \begin{tikzpicture}
       \begin{axis}[
-     	  height=8cm,
+     	  height=5cm,
           width=\linewidth, % Scale the plot to \linewidth
           grid=major, % Display a grid
           grid style={dashed,gray!30}, % Set the style
@@ -325,7 +340,7 @@ https://www.cs.kent.ac.uk/people/staff/eab2/talks/Cryptographylawethics.pdf
 	\\
     \begin{tikzpicture}
       \begin{axis}[
-     	  height=8cm,
+     	  height=5cm,
           width=\linewidth, % Scale the plot to \linewidth
           grid=major, % Display a grid
           grid style={dashed,gray!30}, % Set the style
@@ -343,9 +358,8 @@ https://www.cs.kent.ac.uk/people/staff/eab2/talks/Cryptographylawethics.pdf
         \legend{Plot}
       \end{axis}
     \end{tikzpicture}
-    \clearpage
     
-    Agreements of 13-bit subkeys in LSFR3 with function output
+    Agreements of 13-bit subkeys in LSFR3 with function output (demonstrates the lack of significant difference in agreement between the maximal outlying key and the median in LFSR3, in comparison to LFSR1's outlying key).
 	
 	\begin{tikzpicture}
 	  \begin{axis}
@@ -375,6 +389,7 @@ https://www.cs.kent.ac.uk/people/staff/eab2/talks/Cryptographylawethics.pdf
 	  \end{axis}
 	\end{tikzpicture}
 
+	\clearpage
 	\section{Stream.py}\label{app:stream}
 	\lstinputlisting[language=Python]{../part1/stream.py}
   \clearpage
@@ -400,14 +415,14 @@ https://www.cs.kent.ac.uk/people/staff/eab2/talks/Cryptographylawethics.pdf
   \section{Paths through substitution-permutation network}\label{app:paths}
   \includegraphics{12,12288}
   \includegraphics{13,768}
-  \\ 
+
   \hspace{1cm}
   The diagrams above demonstrate the path through the substitution-permutation network undertaken to crack the first 8 bits of the subkey, using the differential pairs \lstinline{(12, 12288)} and \lstinline{(13, 768)} respectively.
   \clearpage
   
   \includegraphics{2,48}
   \includegraphics{17,1}
-    \\ 
+
   \hspace{1cm}
   The diagrams above demonstrate the path through the substitution-permutation network undertaken to crack the last 8 bits of the subkey, using the differential pairs \lstinline{(2, 48)} and \lstinline{(17, 1)} respectively.
   \clearpage

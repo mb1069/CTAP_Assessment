@@ -90,13 +90,13 @@ def crack_section_subkey(plain_diff, cipher_diff, shift):
 
 def main():
     crack = crack_section_subkey(12, 12288, 12)
-    print "Bits 1..4: value:    {0},    prob:  {1}".format(crack[0], crack[1])
+    print "Bits 1..4: value:    0x{0},    prob:  {1}".format("{0:X}".format(crack[0]), crack[1])
     crack = crack_section_subkey(13, 768, 8)
-    print "Bits 5..8: value:    {0},    prob:  {1}".format(crack[0], crack[1])
+    print "Bits 5..8: value:    0x{0},    prob:  {1}".format("{0:X}".format(crack[0]), crack[1])
     crack = crack_section_subkey(2, 48, 4)
-    print "Bits 9..12: value:   {0},    prob:  {1}".format(crack[0], crack[1])
+    print "Bits 9..12: value:   0x{0},    prob:  {1}".format("{0:X}".format(crack[0]), crack[1])
     crack = crack_section_subkey(17, 1, 0)
-    print "Bits 13..16: value:  {0},    prob:  {1}".format(crack[0], crack[1])
+    print "Bits 13..16: value:  0x{0},    prob:  {1}".format("{0:X}".format(crack[0]), crack[1])
 
 
 if __name__ == "__main__":

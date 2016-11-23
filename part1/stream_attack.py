@@ -33,25 +33,10 @@ class Lfsr:
 
 # Implements the given boolean function
 def combine_lfsr_outputs(out_1, out_2, out_3):
-    if out_1 == 0 and out_2 == 0 and out_3 == 0:
-        return "1"
-    elif out_1 == 0 and out_2 == 0 and out_3 == 1:
-        return "1"
-    elif out_1 == 0 and out_2 == 1 and out_3 == 0:
-        return "0"
-    elif out_1 == 0 and out_2 == 1 and out_3 == 1:
-        return "1"
-    elif out_1 == 1 and out_2 == 0 and out_3 == 0:
-        return "0"
-    elif out_1 == 1 and out_2 == 0 and out_3 == 1:
-        return "0"
-    elif out_1 == 1 and out_2 == 1 and out_3 == 0:
-        return "1"
-    elif out_1 == 1 and out_2 == 1 and out_3 == 1:
-        return "0"
-    else:
-        return ""
-
+    val = str(out_1) + str(out_2) + str(out_3)
+    val = int(val, 2)
+    sub_arr = [1, 1, 0, 1, 0, 0, 1, 0]
+    return str(sub_arr[val])
 
 # Execute the shift registers and return their combined output for the requested number of bits
 def test_combined(lfsr1, lfsr2, lfsr3, num_vals):
@@ -156,7 +141,6 @@ def main():
         key_l1 = crack_with(l1, l, dec2bin(l.length, key_l), data)[0]
         print "L1: " + str(key_l1)
 
-        print crack_with(l2, l, dec2bin(l.length, key_l), data)
         key_l2 = crack_with(l2, l, dec2bin(l.length, key_l), data)[0]
         print "L2: " + str(key_l2)
 
